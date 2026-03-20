@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 flask
 joblib
 numpy
@@ -6,3 +7,9 @@ scikit-learn
 google-generativeai
 gTTS
 python-dotenv
+=======
+flask
+joblib
+numpy
+scikit-learn
+>>>>>>> 5c6b25b5e54e24bfc3de8d473a48f3b8e3ba47b2
