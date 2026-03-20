@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FarmCrop - Smart Crop Recommendation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #fafafa; transition: background-color 0.3s, color 0.3s; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; transition: background-color 0.3s, border-color 0.3s; }
+        .input-field { width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; outline: none; transition: all 0.2s; font-size: 0.95rem; color: #334155; background: white; }
+        .input-field:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
+        .label-text { font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 6px; display: block; transition: color 0.3s; }
+        
+        /* Dark Mode Styles */
+        body.dark { background-color: #0f172a; color: #f8fafc; }
+        body.dark .card { background-color: #1e293b; border-color: #334155; }
+        body.dark .input-field { background-color: #0f172a; border-color: #334155; color: #f8fafc; }
+        body.dark .label-text { color: #cbd5e1; }
+        body.dark header.bg-white { background-color: #1e293b !important; border-color: #334155 !important; }
+        body.dark .bg-white { background-color: #1e293b !important; }
+        body.dark .text-slate-800 { color: #f8fafc !important; }
+        body.dark .text-slate-500, body.dark .text-slate-600, body.dark .text-slate-400 { color: #94a3b8 !important; }
+        body.dark .border-gray-100, body.dark .border-gray-200, body.dark .border-slate-100, body.dark .border-slate-200 { border-color: #334155 !important; }
+        body.dark .bg-slate-50, body.dark .bg-sky-50\/50, body.dark .bg-violet-50\/50 { background-color: #334155 !important; }
+        body.dark .hover\:bg-slate-50:hover { background-color: #475569 !important; }
+        body.dark #aiModal .bg-white { background-color: #1e293b; border-color: #334155; }
+        
+        .badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 0.70rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-high { background-color: #059669; color: #ffffff; }
+        .badge-medium { background-color: #d97706; color: #ffffff; }
+        .badge-low { background-color: #dc2626; color: #ffffff; }
+        
+        /* Custom scrolling for predictions */
+        .scroller::-webkit-scrollbar { width: 6px; }
+        .scroller::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .scroller::-webkit-scrollbar-track { background: transparent; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .anim-slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+    </style>
+</head>
+
+<body class="min-h-screen text-slate-800">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-100 py-4 px-6 md:px-12 flex justify-between items-center sticky top-0 z-10 w-full shadow-sm">
+        <div class="flex items-center gap-3 text-brand-600 font-bold text-xl">
+            <i data-lucide="sprout" class="w-6 h-6"></i>
+            <span>FarmCrop <span class="text-slate-400 font-normal hidden sm:inline-block">- Smart Crop Recommendation</span></span>
+        </div>
+        <div class="flex items-center gap-3">
+            <button id="darkModeToggle" class="w-10 h-10 rounded-full bg-brand-500 hover:bg-brand-600 border-none flex items-center justify-center text-white transition shadow-sm" title="Toggle Dark Mode">
+                <i data-lucide="moon" class="w-5 h-5"></i>
+            </button>
+            <button class="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition">
+                <i data-lucide="languages" class="w-5 h-5"></i>
+            </button>
+            <button class="px-5 py-2 rounded-full border border-gray-200 flex items-center gap-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
+                <i data-lucide="log-out" class="w-4 h-4 text-slate-400"></i>
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <div class="mb-8">
+            <h1 class="text-3xl font-extrabold text-brand-700 tracking-tight mb-1">Dashboard</h1>
+            <p class="text-slate-500 text-sm font-medium">Welcome back, Administrator</p>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8 items-start">
+            <!-- Left Column: Soil Analysis Form -->
+            <div class="flex-1 w-full bg-white card p-6 lg:p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center gap-2 text-brand-600">
+                        <i data-lucide="leaf" class="w-5 h-5"></i>
+                        <h2 class="text-lg font-bold text-slate-800">Soil Analysis</h2>
+                    </div>
+                </div>
+
+                <div class="relative mb-8 rounded-xl overflow-hidden shadow-sm border border-slate-100 h-56">
+                    <img src="https://images.unsplash.com/photo-1592982537447-6f2cf190bf03?auto=format&fit=crop&w=1200&q=80" 
+                         alt="Soil Banner" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end p-4">
+                        <p class="text-white font-medium text-sm">Enter field measurements for optimal AI prediction.</p>
+                    </div>
+                </div>
+
+                <form id="predictForm" class="flex flex-col">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+                        <div>
+                            <label class="label-text">Nitrogen Level (N)</label>
+                            <input type="number" step="any" required name="N" id="N" class="input-field" placeholder="e.g. 50">
+                        </div>
+                        <div>
+                            <label class="label-text">Phosphorus Level (P)</label>
+                            <input type="number" step="any" required name="P" id="P" class="input-field" placeholder="e.g. 50">
+                        </div>
+                        <div>
+                            <label class="label-text">Potassium Level (K)</label>
+                            <input type="number" step="any" required name="K" id="K" class="input-field" placeholder="e.g. 50">
+                        </div>
+                        <div>
+                            <label class="label-text">pH Level</label>
+                            <input type="number" step="any" required name="ph" id="ph" class="input-field" placeholder="0 - 14">
+                        </div>
+                        
+                        <!-- Live Weather Section -->
+                        <div class="sm:col-span-2 flex flex-col sm:flex-row gap-4 items-end bg-brand-50/50 p-4 rounded-xl border border-brand-100 mt-2 mb-2">
+                            <div class="flex-1 w-full">
+                                <label class="label-text text-brand-800">Farm Location (for live weather)</label>
+                                <input type="text" id="locationSearch" class="input-field border-brand-200 focus:border-brand-400 focus:shadow-[0_0_0_3px_rgba(16,185,129,0.15)] bg-white" placeholder="e.g. Punjab, India">
+                            </div>
+                            <button type="button" id="fetchWeatherBtn" class="w-full sm:w-auto px-5 py-[11px] bg-brand-600 text-white rounded-lg hover:bg-brand-700 font-semibold transition shadow-md shadow-brand-500/30 whitespace-nowrap flex items-center justify-center gap-2">
+                                <i data-lucide="cloud-sun" class="w-5 h-5"></i><span>Get Weather</span>
+                            </button>
+                        </div>
+                        <div>
+                            <label class="label-text">Temperature (°C)</label>
+                            <input type="number" step="any" required name="temperature" id="temperature" class="input-field" placeholder="e.g. 25">
+                        </div>
+                        <div>
+                            <label class="label-text">Humidity (%)</label>
+                            <input type="number" step="any" required name="humidity" id="humidity" class="input-field" placeholder="e.g. 70">
+                        </div>
+                        <div>
+                            <label class="label-text">Rainfall (mm)</label>
+                            <input type="number" step="any" required name="rainfall" id="rainfall" class="input-field" placeholder="e.g. 150">
+                        </div>
+                        <div>
+                            <label class="label-text">Prediction Model</label>
+                            <select name="model" id="modelSelect" class="input-field bg-slate-50">
+                                {% if models %}
+                                    {% for m in models %}<option value="{{m}}">{{m}}</option>{% endfor %}
+                                {% else %}
+                                    <option value="">(No models found)</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex gap-4">
+                        <button type="submit" id="submitBtn" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white py-3.5 rounded-xl font-bold transition shadow-md shadow-brand-500/30 flex justify-center items-center gap-2">
+                            <span>Analyze Soil</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                        <button type="button" id="fillExampleBtn" class="px-5 py-3.5 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 font-semibold transition" title="Fill Sample Data">
+                            <i data-lucide="wand-2" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Right Column -->
+            <div class="w-full lg:w-[420px] flex flex-col gap-8">
+                
+                <!-- Weather Features (Static Display based on mockup) -->
+                <div class="card p-6 border-t-4 border-t-brand-400">
+                    <div class="flex items-center gap-2 text-brand-600 mb-5">
+                        <i data-lucide="cloud-sun" class="w-5 h-5"></i>
+                        <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Environmental Factors</h2>
+                    </div>
+                    <div class="grid grid-cols-2 gap-y-6 gap-x-4">
+                        <div class="flex gap-3 items-center">
+                            <div class="bg-brand-100 p-2 rounded-lg text-brand-500"><i data-lucide="thermometer" class="w-5 h-5"></i></div>
+                            <div><p class="text-xs text-slate-500 font-semibold">Temperature</p><p class="text-sm font-bold" id="dispTemp">-- °C</p></div>
+                        </div>
+                        <div class="flex gap-3 items-center">
+                            <div class="bg-brand-100 p-2 rounded-lg text-brand-500"><i data-lucide="droplets" class="w-5 h-5"></i></div>
+                            <div><p class="text-xs text-slate-500 font-semibold">Humidity</p><p class="text-sm font-bold" id="dispHum">-- %</p></div>
+                        </div>
+                        <div class="flex gap-3 items-center">
+                            <div class="bg-brand-100 p-2 rounded-lg text-brand-500"><i data-lucide="cloud-rain" class="w-5 h-5"></i></div>
+                            <div><p class="text-xs text-slate-500 font-semibold">Rainfall</p><p class="text-sm font-bold" id="dispRain">-- mm</p></div>
+                        </div>
+                        <div class="flex gap-3 items-center">
+                            <div class="bg-brand-100 p-2 rounded-lg text-brand-500"><i data-lucide="wind" class="w-5 h-5"></i></div>
+                            <div><p class="text-xs text-slate-500 font-semibold">Wind Speed</p><p class="text-sm font-bold" id="dispWind">-- km/h</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommended Crops -->
+                <div class="card p-6 flex-1 flex flex-col border-t-4 border-t-brand-500">
+                    <div class="flex items-center gap-2 text-brand-600 mb-5">
+                        <i data-lucide="wheat" class="w-5 h-5"></i>
+                        <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Recommended Crops</h2>
+                    </div>
+
+                    <div class="relative mb-5 rounded-lg overflow-hidden h-36">
+                        <img src="https://images.unsplash.com/photo-1595856715003-85804aa3d5ef?auto=format&fit=crop&w=800&q=80" 
+                             alt="Harvest Banner" class="w-full h-full object-cover">
+                    </div>
+
+                    <!-- List Container -->
+                    <div id="recommendationsList" class="flex-1 space-y-3 scroller max-h-[350px] overflow-y-auto pr-1 pb-4">
+                        <div class="text-center py-10 flex flex-col items-center justify-center h-full">
+                            <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                                <i data-lucide="bar-chart-2" class="w-8 h-8 text-slate-300"></i>
+                            </div>
+                            <p class="text-slate-400 text-sm font-medium">Awaiting analysis data</p>
+                        </div>
+                    </div>
+                    
+                    <!-- AI Gemini Button (Appears post-prediction) -->
+                    <div id="aiControls" class="mt-4 pt-4 border-t border-slate-100" style="display: none;">
+                        <button id="askGeminiBtn" class="w-full bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white py-3 rounded-lg font-bold text-sm transition flex justify-center items-center gap-2 shadow-sm">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            <span>Ask AI Why this Crop?</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal for AI Explanation -->
+        <div id="aiModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300">
+                <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-brand-50/50">
+                    <div class="flex items-center gap-2 text-brand-700">
+                        <i data-lucide="sparkles" class="w-5 h-5"></i>
+                        <h3 class="font-bold">Gemini Analysis</h3>
+                    </div>
+                    <button id="closeAiModalBtn" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4 gap-4">
+                        <select id="languageSelector" class="input-field py-2 text-sm max-w-[140px]">
+                            <option value="English">English</option>
+                            <option value="Hindi">Hindi (हिंदी)</option>
+                            <option value="Urdu">Urdu (اردو)</option>
+                            <option value="Spanish">Spanish (Español)</option>
+                            <option value="French">French (Français)</option>
+                            <option value="Bengali">Bengali (বাংলা)</option>
+                            <option value="Marathi">Marathi (मराठी)</option>
+                            <option value="Tamil">Tamil (தமிழ்)</option>
+                            <option value="Telugu">Telugu (తెలుగు)</option>
+                        </select>
+                        
+                        <div id="audioControls" class="flex gap-2">
+                            <button id="speakBtn" class="px-3 py-1.5 bg-brand-50 text-brand-700 rounded-md text-sm font-semibold hover:bg-brand-100 transition flex items-center gap-1">
+                                <i data-lucide="volume-2" class="w-4 h-4"></i> Listen
+                            </button>
+                            <button id="stopBtn" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-md text-sm font-semibold hover:bg-red-100 transition items-center gap-1" style="display:none;">
+                                <i data-lucide="square" class="w-3 h-3"></i> Stop
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-50 rounded-xl p-5 border border-slate-100 min-h-[120px]">
+                        <p id="aiContent" class="text-slate-700 text-sm leading-relaxed whitespace-pre-line">Loading analysis...</p>
+                    </div>
+                    <audio id="audioPlayer" style="display:none"></audio>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // Dark Mode Logic
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const updateDarkModeIcon = () => {
+            const isDark = document.body.classList.contains('dark');
+            darkModeToggle.innerHTML = isDark ? '<i data-lucide="sun" class="w-5 h-5"></i>' : '<i data-lucide="moon" class="w-5 h-5"></i>';
+            lucide.createIcons();
+        };
+        
+        // Load preference
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.body.classList.add('dark');
+            updateDarkModeIcon();
+        }
+
+        darkModeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+            updateDarkModeIcon();
+        });
+
+        // Weather API Logic
+        document.getElementById('fetchWeatherBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('fetchWeatherBtn');
+            const loc = document.getElementById('locationSearch').value.trim();
+            if(!loc) return alert("Please enter a location first (e.g., Punjab, India).");
+            
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Locating...</span>`;
+            lucide.createIcons();
+
+            try {
+                // 1. Geocoding
+                const geoResp = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(loc)}&count=1`);
+                const geoData = await geoResp.json();
+                
+                if(!geoData.results || geoData.results.length === 0) throw new Error("Location not found. Try a different city.");
+                
+                const { latitude, longitude, name, country } = geoData.results[0];
+                document.getElementById('locationSearch').value = `${name}, ${country}`;
+                
+                // 2. Weather
+                btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Fetching...</span>`;
+                lucide.createIcons();
+                const wxResp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,rain,wind_speed_10m`);
+                const wxData = await wxResp.json();
+                
+                const current = wxData.current;
+                
+                // Update Form Inputs
+                const tempEl = document.getElementById('temperature');
+                const humEl = document.getElementById('humidity');
+                const rainEl = document.getElementById('rainfall');
+                
+                tempEl.value = current.temperature_2m;
+                humEl.value = current.relative_humidity_2m;
+                rainEl.value = current.rain;
+                
+                // Trigger input events to update the right side display
+                tempEl.dispatchEvent(new Event('input'));
+                humEl.dispatchEvent(new Event('input'));
+                rainEl.dispatchEvent(new Event('input'));
+                
+                // Update Wind Speed directly in the UI
+                document.getElementById('dispWind').textContent = `${current.wind_speed_10m} km/h`;
+                
+                btn.innerHTML = `<i data-lucide="check" class="w-5 h-5"></i><span>Success</span>`;
+                btn.classList.replace('bg-brand-600', 'bg-emerald-600');
+                btn.classList.replace('hover:bg-brand-700', 'hover:bg-emerald-700');
+                lucide.createIcons();
+                
+                setTimeout(() => { 
+                    btn.innerHTML = originalHtml; 
+                    btn.classList.replace('bg-emerald-600', 'bg-brand-600');
+                    btn.classList.replace('hover:bg-emerald-700', 'hover:bg-brand-700');
+                    lucide.createIcons(); 
+                }, 3000);
+                
+            } catch(e) {
+                alert(e.message);
+                btn.innerHTML = originalHtml;
+                lucide.createIcons();
+            }
+        });
+
+        // Listen for input changes to update weather display
+        ['temperature', 'humidity', 'rainfall'].forEach(id => {
+            document.getElementById(id).addEventListener('input', (e) => {
+                const val = e.target.value;
+                const dispMap = { 'temperature': 'dispTemp', 'humidity': 'dispHum', 'rainfall': 'dispRain' };
+                const unitMap = { 'temperature': '°C', 'humidity': '%', 'rainfall': 'mm' };
+                document.getElementById(dispMap[id]).textContent = val ? `${val} ${unitMap[id]}` : `-- ${unitMap[id]}`;
+            });
+        });
+
+        const form = document.getElementById('predictForm');
+        let lastData = null;
+        let lastTopPrediction = null;
+
+        document.getElementById('fillExampleBtn').addEventListener('click', () => {
+             const defaults = { "N": 85, "P": 58, "K": 41, "temperature": 21.77, "humidity": 80.31, "ph": 7.03, "rainfall": 226.65, "model": document.getElementById('modelSelect').value };
+             for (let k in defaults) { 
+                const el = document.getElementById(k);
+                if (el) {
+                    el.value = defaults[k];
+                    el.dispatchEvent(new Event('input')); // trigger display update
+                }
+             }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Analyzing...</span>`;
+            lucide.createIcons();
+
+            const formData = new FormData(form);
+            lastData = Object.fromEntries(formData.entries());
+            
+            const list = document.getElementById('recommendationsList');
+            const aiControls = document.getElementById('aiControls');
+            
+            list.innerHTML = `<div class="p-6 text-center text-slate-500 font-medium animate-pulse">Running ML Models...</div>`;
+            aiControls.style.display = 'none';
+
+            try {
+                const resp = await fetch('/predict', { method: 'POST', body: formData });
+                const json = await resp.json();
+                
+                if (json.error) throw new Error(json.error);
+
+                list.innerHTML = '';
+                lastTopPrediction = json.top_prediction;
+
+                json.all_predictions.forEach((item, index) => {
+                    let badgeClass = 'badge-low';
+                    let badgeText = 'Low';
+                    if (item.probability > 60) { badgeClass = 'badge-high'; badgeText = 'High'; }
+                    else if (item.probability > 20) { badgeClass = 'badge-medium'; badgeText = 'Medium'; }
+                    
+                    const cropImages = {
+                        'rice': 'https://images.unsplash.com/photo-1586201375761-83865001e8ac?w=120&h=120&fit=crop',
+                        'wheat': 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=120&h=120&fit=crop',
+                        'jute': 'https://images.unsplash.com/photo-1530510526725-3cd9ce6e98b0?w=120&h=120&fit=crop',
+                        'cotton': 'https://images.unsplash.com/photo-1596763615456-11f87b8d80c3?w=120&h=120&fit=crop',
+                        'maize': 'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=120&h=120&fit=crop',
+                        'apple': 'https://images.unsplash.com/photo-1560806887-1e4cd0b6bcc6?w=120&h=120&fit=crop',
+                        'grapes': 'https://images.unsplash.com/photo-1596362540880-5a33ebd6c3ff?w=120&h=120&fit=crop',
+                        'mango': 'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=120&h=120&fit=crop',
+                        'orange': 'https://images.unsplash.com/photo-1557800636-894a64c1696f?w=120&h=120&fit=crop',
+                        'banana': 'https://images.unsplash.com/photo-1481349518771-20055b2a7b24?w=120&h=120&fit=crop',
+                        'papaya': 'https://images.unsplash.com/photo-1517282009859-f000ef1b44cb?w=120&h=120&fit=crop',
+                        'watermelon': 'https://images.unsplash.com/photo-1587049352847-4d4b126a51d4?w=120&h=120&fit=crop',
+                        'muskmelon': 'https://images.unsplash.com/photo-1590479773265-7464e5d48118?w=120&h=120&fit=crop',
+                        'pomegranate': 'https://images.unsplash.com/photo-1528821128474-27f963b062bf?w=120&h=120&fit=crop',
+                        'coconut': 'https://images.unsplash.com/photo-1510257321683-1dfb003c9429?w=120&h=120&fit=crop',
+                        'coffee': 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=120&h=120&fit=crop',
+                        'chickpea': 'https://images.unsplash.com/photo-1615486171448-4fdcbef516ce?w=120&h=120&fit=crop',
+                        'kidneybeans': 'https://images.unsplash.com/photo-1551185568-12c5b369c7cc?w=120&h=120&fit=crop',
+                        'mothbeans': 'https://images.unsplash.com/photo-1515543904379-3d757afe72e4?w=120&h=120&fit=crop',
+                        'mungbean': 'https://images.unsplash.com/photo-1598425237654-4eccabfe2b5a?w=120&h=120&fit=crop',
+                        'blackgram': 'https://images.unsplash.com/photo-1628189674068-d06efce83cf4?w=120&h=120&fit=crop',
+                        'lentil': 'https://images.unsplash.com/photo-1515543904379-3d757afe72e4?w=120&h=120&fit=crop',
+                        'pigeonpeas': 'https://images.unsplash.com/photo-1582282577239-df08e73fc5f8?w=120&h=120&fit=crop'
+                    };
+                    const fallbackImg = `https://images.unsplash.com/photo-1592494804071-faea15d93a8a?w=120&h=120&fit=crop&q=${item.crop.length}`; // Pseudo-random placeholder
+                    const imgUrl = cropImages[item.crop.toLowerCase()] || fallbackImg;
+
+                    const el = document.createElement('div');
+                    // Add slide-up animation class and calculate delay based on index
+                    const animDelay = parseInt(index) * 100;
+                    el.className = `anim-slide-up p-4 rounded-xl border ${index === 0 ? 'bg-brand-50/50 border-brand-200' : 'bg-white border-slate-100'} shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] flex justify-between items-center transition-all duration-300 hover:border-brand-400 hover:shadow-md hover:-translate-y-1`;
+                    el.style.animationDelay = `${animDelay}ms`;
+                    
+                    el.innerHTML = `
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-lg overflow-hidden shadow-sm border border-slate-200 shrink-0">
+                                <img src="${imgUrl}" alt="${item.crop}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-lg capitalize mb-0.5">${item.crop}</h3>
+                                <p class="text-xs text-slate-500 font-medium tracking-wide">CONFIDENCE: ${item.probability}%</p>
+                            </div>
+                        </div>
+                        <span class="badge ${badgeClass} shadow-sm">${badgeText}</span>
+                    `;
+                    list.appendChild(el);
+                });
+
+                aiControls.style.display = 'block';
+
+            } catch (err) {
+                list.innerHTML = `<div class="p-4 bg-red-50 text-red-600 rounded-lg text-sm font-medium border border-red-100"><i data-lucide="alert-circle" class="inline w-4 h-4 mr-1"></i> ${err.message}</div>`;
+                lucide.createIcons();
+            } finally {
+                btn.innerHTML = originalText;
+                lucide.createIcons();
+            }
+        });
+
+        // AI Modal logic
+        const aiModal = document.getElementById('aiModal');
+        const aiContent = document.getElementById('aiContent');
+        const askGeminiBtn = document.getElementById('askGeminiBtn');
+        const closeAiModalBtn = document.getElementById('closeAiModalBtn');
+        
+        const openModal = () => { aiModal.classList.remove('opacity-0', 'pointer-events-none'); aiModal.children[0].classList.remove('scale-95'); };
+        const closeModal = () => { aiModal.classList.add('opacity-0', 'pointer-events-none'); aiModal.children[0].classList.add('scale-95'); };
+        
+        closeAiModalBtn.addEventListener('click', closeModal);
+
+        askGeminiBtn.addEventListener('click', async () => {
+            openModal();
+            const language = document.getElementById('languageSelector').value;
+            fetchAIExplanation(language);
+        });
+
+        document.getElementById('languageSelector').addEventListener('change', (e) => {
+            fetchAIExplanation(e.target.value);
+        });
+
+        async function fetchAIExplanation(language) {
+            aiContent.innerHTML = `<span class="animate-pulse">Analyzing soil data via Gemini in ${language}...</span>`;
+            document.getElementById('speakBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'none';
+            
+            try {
+                const response = await fetch('/explain', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ features: lastData, prediction: lastTopPrediction, language })
+                });
+                const data = await response.json();
+                aiContent.textContent = data.explanation;
+                document.getElementById('speakBtn').style.display = 'flex';
+                currentExplanation = data.explanation;
+            } catch (err) {
+                aiContent.innerHTML = `<span class="text-red-500">AI Error: ${err.message}</span>`;
+            }
+        }
+
+        // Audio Logic
+        let currentExplanation = '';
+        const speakBtn = document.getElementById('speakBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const audioPlayer = document.getElementById('audioPlayer');
+
+        speakBtn.addEventListener('click', async () => {
+            const originalIcon = speakBtn.innerHTML;
+            speakBtn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i>`;
+            lucide.createIcons();
+            speakBtn.disabled = true;
+
+            try {
+                const language = document.getElementById('languageSelector').value;
+                const audioResp = await fetch('/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: currentExplanation, language: language })
+                });
+                
+                if (!audioResp.ok) throw new Error('Audio failed');
+
+                const blob = await audioResp.blob();
+                audioPlayer.src = URL.createObjectURL(blob);
+                audioPlayer.play();
+                
+                speakBtn.style.display = 'none';
+                stopBtn.style.display = 'flex';
+            } catch (err) {
+                console.error(err);
+            } finally {
+                speakBtn.innerHTML = originalIcon;
+                speakBtn.disabled = false;
+                lucide.createIcons();
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+            stopBtn.style.display = 'none';
+            speakBtn.style.display = 'flex';
+        });
+
+        audioPlayer.addEventListener('ended', () => {
+            stopBtn.style.display = 'none';
+            speakBtn.style.display = 'flex';
+        });
+    </script>
+</body>
+</html>
