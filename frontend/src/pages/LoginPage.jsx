@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sprout, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, Globe } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, Globe } from 'lucide-react'
 import Particles from '../components/Particles'
+import Logo from '../components/Logo'
 import { translations, LANGUAGES } from '../i18n'
 
 const HERO_IMAGE = '/assets/hero3.jpg'
 
-export default function LoginPage({ lang, setLang }) {
+export default function LoginPage({ lang, setLang, onLogin, onSignup }) {
   const navigate = useNavigate()
   const t = translations[lang] || translations.en
   const [email, setEmail] = useState('')
@@ -22,6 +23,7 @@ export default function LoginPage({ lang, setLang }) {
     await new Promise(r => setTimeout(r, 1200))
     setLoading(false)
     localStorage.setItem('farmcrop_user', JSON.stringify({ email, name: email.split('@')[0] }))
+    if (onLogin) onLogin()
     navigate('/')
   }
 
@@ -34,8 +36,7 @@ export default function LoginPage({ lang, setLang }) {
           <img className="auth-visual-img" src={HERO_IMAGE} alt="Farm field" />
           <div className="auth-visual-overlay" />
           <div className="auth-visual-logo">
-            <div className="auth-visual-logo-icon"><Sprout size={20} color="white" /></div>
-            <span>{t.appName}</span>
+            <Logo size={20} fontSize="1.1rem" />
           </div>
           <div className="auth-visual-content">
             <div className="auth-testimonial">
@@ -72,8 +73,8 @@ export default function LoginPage({ lang, setLang }) {
 
           <div className="auth-form-box">
             <div style={{ marginBottom: '2rem' }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--clr-primary-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--clr-primary)', marginBottom: 16 }}>
-                <Sprout size={22} />
+              <div style={{ marginBottom: 16 }}>
+                <Logo size={24} fontSize="1.4rem" />
               </div>
               <h2>{t.loginTitle}</h2>
               <p className="auth-sub">{t.loginSub}</p>

@@ -9,6 +9,7 @@ export default defineConfig({
       '/explain': 'http://127.0.0.1:5000',
       '/tts': 'http://127.0.0.1:5000',
       '/models': 'http://127.0.0.1:5000',
+      '/api': 'http://127.0.0.1:5000',
     }
   },
   build: {

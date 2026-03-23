@@ -1,38 +1,31 @@
-import { useState, useRef, useContext } from 'react'
-import { FlaskConical, Thermometer, Droplets, CloudRain, CloudSun, Loader2, Wand2, ArrowRight, MapPin, ChevronDown, Info } from 'lucide-react'
+import { useState, useRef, useContext, useEffect } from 'react'
+import { Thermometer, Droplets, CloudRain, CloudSun, Loader2, Wand2, ArrowRight, MapPin, ChevronDown } from 'lucide-react'
 import { LangContext } from '../App'
 
 const SAMPLE = { N: 85, P: 58, K: 41, temperature: 21.77, humidity: 80.31, ph: 7.03, rainfall: 226.65 }
 
-function Tooltip({ text }) {
-  const [show, setShow] = useState(false)
-  return (
-    <span style={{ position: 'relative', display: 'inline-flex', marginLeft: 6, verticalAlign: 'middle' }}
-      onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
-      <Info size={12} style={{ color: 'var(--txt-muted)', cursor: 'help' }} />
-      {show && (
-        <div style={{
-          position: 'absolute', bottom: '130%', left: '50%', transform: 'translateX(-50%)',
-          background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 8,
-          padding: '8px 12px', fontSize: '0.75rem', color: 'var(--txt-secondary)', whiteSpace: 'nowrap',
-          zIndex: 100, boxShadow: 'var(--shadow-md)', pointerEvents: 'none',
-          animation: 'fadeIn 0.15s ease'
-        }}>
-          {text}
-          <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '5px solid var(--border)' }} />
-        </div>
-      )}
-    </span>
-  )
-}
-
-export default function SoilForm({ models, weather, onWeatherFetched, onSubmit, loading }) {
+export default function SoilForm({ models, weather, onWeatherFetched, onSubmit, loading, initialLocation }) {
   const { t } = useContext(LangContext)
   const [values, setValues] = useState({ N: '', P: '', K: '', ph: '', temperature: '', humidity: '', rainfall: '', model: '' })
-  const [location, setLocation] = useState('')
+  const [location, setLocation] = useState(initialLocation || '')
   const [wxLoading, setWxLoading] = useState(false)
   const [wxStatus, setWxStatus] = useState(null)
   const locRef = useRef(null)
+
+  useEffect(() => {
+    if (initialLocation) setLocation(initialLocation)
+  }, [initialLocation])
+
+  useEffect(() => {
+    if (weather.temp !== null && !values.temperature) {
+      setValues(prev => ({ 
+        ...prev, 
+        temperature: weather.temp, 
+        humidity: weather.humidity, 
+        rainfall: weather.rain 
+      }))
+    }
+  }, [weather])
 
   const set = (k, v) => setValues(prev => ({ ...prev, [k]: v }))
 
@@ -68,96 +61,113 @@ export default function SoilForm({ models, weather, onWeatherFetched, onSubmit, 
   }
 
   const FIELDS = [
-    { name: 'N', label: t.nitrogenLabel, unit: 'mg/kg', placeholder: 'e.g. 85', icon: <FlaskConical size={14} />, tip: t.nitrogenTip },
-    { name: 'P', label: t.phosphorusLabel, unit: 'mg/kg', placeholder: 'e.g. 58', icon: <FlaskConical size={14} />, tip: t.phosphorusTip },
-    { name: 'K', label: t.potassiumLabel, unit: 'mg/kg', placeholder: 'e.g. 41', icon: <FlaskConical size={14} />, tip: t.potassiumTip },
-    { name: 'ph', label: t.phLabel, unit: '0–14', placeholder: 'e.g. 7.0', icon: <FlaskConical size={14} />, tip: t.phTip },
+    { name: 'N', label: '🟤 ' + t.nitrogenLabel,   unit: 'mg/kg', placeholder: 'e.g. 85',  helpText: 'Nitrogen content in soil' },
+    { name: 'P', label: '🟠 ' + t.phosphorusLabel, unit: 'mg/kg', placeholder: 'e.g. 58',  helpText: 'Phosphorus content in soil' },
+    { name: 'K', label: '🟡 ' + t.potassiumLabel,  unit: 'mg/kg', placeholder: 'e.g. 41',  helpText: 'Potassium content in soil' },
+    { name: 'ph', label: '⚗️ ' + t.phLabel,         unit: '0–14',  placeholder: 'e.g. 7.0', helpText: '7 is neutral (ideal for most crops)' },
   ]
   const CLIMATE = [
-    { name: 'temperature', label: t.tempLabel, unit: '°C', placeholder: 'e.g. 25', icon: <Thermometer size={14} />, tip: t.tempTip },
-    { name: 'humidity', label: t.humidityLabel, unit: '%', placeholder: 'e.g. 70', icon: <Droplets size={14} />, tip: t.humidityTip },
-    { name: 'rainfall', label: t.rainfallLabel, unit: 'mm', placeholder: 'e.g. 150', icon: <CloudRain size={14} />, tip: t.rainfallTip },
+    { name: 'temperature', label: '🌡️ ' + t.tempLabel,     unit: '°C', placeholder: 'e.g. 25',  helpText: 'Average temperature in your area', icon: <Thermometer size={15} /> },
+    { name: 'humidity',    label: '💧 ' + t.humidityLabel,  unit: '%',  placeholder: 'e.g. 70',  helpText: 'Average humidity percentage',         icon: <Droplets size={15} /> },
+    { name: 'rainfall',    label: '🌧️ ' + t.rainfallLabel,  unit: 'mm', placeholder: 'e.g. 150', helpText: 'Annual rainfall in millimeters',       icon: <CloudRain size={15} /> },
   ]
 
   return (
     <div className="card">
       <div className="card-header">
-        <div className="card-header-icon"><FlaskConical size={18} /></div>
+        <div className="card-header-icon" style={{ fontSize: '1.4rem' }}>🌿</div>
         <div>
           <div className="card-title">{t.soilCardTitle}</div>
           <div className="card-subtitle">{t.soilCardSub}</div>
         </div>
       </div>
       <div className="card-body">
-        {/* Steps guide */}
-        <div className="form-steps">
-          <div className="form-step-label">{t.step1}</div>
-        </div>
         <form onSubmit={handleSubmit}>
-          <div className="form-grid">
-            {FIELDS.map(f => (
-              <div className="form-group" key={f.name}>
-                <label>
-                  {f.label} <span className="unit">({f.unit})</span>
-                  <Tooltip text={f.tip} />
-                </label>
-                <div className="input-wrap">
-                  <span className="input-icon">{f.icon}</span>
-                  <input className="field" type="number" step="any" required placeholder={f.placeholder}
-                    value={values[f.name]} onChange={e => set(f.name, e.target.value)} />
-                </div>
-              </div>
-            ))}
 
-            {/* Weather fetch */}
-            <div className="form-full">
-              <div className="form-step-label" style={{ marginBottom: 10 }}>{t.step2}</div>
-              <div className="weather-fetch-panel">
-                <div className="form-group" style={{ flex: 1, margin: 0 }}>
-                  <label style={{ color: '#86efac' }}>
-                    <MapPin size={11} style={{ display: 'inline', marginRight: 4 }} />
-                    {t.locationLabel}
+          {/* Step 1: Soil nutrients */}
+          <div style={{ marginBottom: '1.5rem' }}>
+            <div className="form-step-label">
+              📋 Step 1 — Enter Soil Nutrients
+            </div>
+            <div className="form-grid">
+              {FIELDS.map(f => (
+                <div className="form-group" key={f.name}>
+                  <label>
+                    {f.label} <span className="unit">({f.unit})</span>
                   </label>
                   <div className="input-wrap">
-                    <span className="input-icon"><MapPin size={14} /></span>
-                    <input className="field" type="text" ref={locRef}
-                      placeholder={t.locationPlaceholder} value={location}
-                      onChange={e => setLocation(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), fetchWeather())} />
+                    <span className="input-icon" style={{ fontSize: '1rem', left: 12, color: 'var(--clr-primary)' }}>•</span>
+                    <input className="field" type="number" step="any" required placeholder={f.placeholder}
+                      value={values[f.name]} onChange={e => set(f.name, e.target.value)}
+                      inputMode="decimal"
+                    />
                   </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--txt-muted)', marginTop: 4, paddingLeft: 2 }}>{f.helpText}</div>
                 </div>
-                <button type="button"
-                  className={`btn ${wxStatus === 'success' ? 'btn-secondary' : 'btn-primary'}`}
-                  onClick={fetchWeather} disabled={wxLoading} style={{ flexShrink: 0 }}>
-                  {wxLoading
-                    ? <><Loader2 size={16} className="spin" /> {t.fetchingBtn}</>
-                    : wxStatus === 'success' ? <>{t.weatherSuccess}</>
-                    : wxStatus === 'error' ? <>{t.weatherError}</>
-                    : <><CloudSun size={16} /> {t.getWeatherBtn}</>
-                  }
-                </button>
-              </div>
+              ))}
             </div>
+          </div>
 
-            {CLIMATE.map(f => (
-              <div className="form-group" key={f.name}>
-                <label>
-                  {f.label} <span className="unit">({f.unit})</span>
-                  <Tooltip text={f.tip} />
+          {/* Step 2: Weather / climate */}
+          <div style={{ marginBottom: '1.5rem' }}>
+            <div className="form-step-label">
+              🌦️ Step 2 — Weather & Climate
+            </div>
+            {/* Location auto-fill */}
+            <div className="weather-fetch-panel" style={{ marginBottom: '1.25rem' }}>
+              <div className="form-group" style={{ flex: 1, margin: 0 }}>
+                <label style={{ color: 'var(--clr-primary)', fontWeight: 700 }}>
+                  <MapPin size={13} style={{ display: 'inline', marginRight: 4 }} />
+                  Auto-fill from your city / village
                 </label>
                 <div className="input-wrap">
-                  <span className="input-icon">{f.icon}</span>
-                  <input className="field" type="number" step="any" required placeholder={f.placeholder}
-                    value={values[f.name]} onChange={e => set(f.name, e.target.value)} />
+                  <span className="input-icon"><MapPin size={15} /></span>
+                  <input className="field" type="text" ref={locRef}
+                    placeholder="Type your city or village name..."
+                    value={location}
+                    onChange={e => setLocation(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), fetchWeather())} />
                 </div>
               </div>
-            ))}
+              <button type="button"
+                className={`btn ${wxStatus === 'success' ? 'btn-secondary' : 'btn-primary'}`}
+                onClick={fetchWeather} disabled={wxLoading} style={{ flexShrink: 0, height: 54 }}>
+                {wxLoading
+                  ? <><Loader2 size={16} className="spin" /> Getting...</>
+                  : wxStatus === 'success' ? <>✅ Got it!</>
+                  : wxStatus === 'error' ? <>❌ Not found</>
+                  : <><CloudSun size={16} /> Get Weather</>
+                }
+              </button>
+            </div>
 
+            <div className="form-grid">
+              {CLIMATE.map(f => (
+                <div className="form-group" key={f.name}>
+                  <label>
+                    {f.label} <span className="unit">({f.unit})</span>
+                  </label>
+                  <div className="input-wrap">
+                    <span className="input-icon">{f.icon}</span>
+                    <input className="field" type="number" step="any" required placeholder={f.placeholder}
+                      value={values[f.name]} onChange={e => set(f.name, e.target.value)}
+                      inputMode="decimal"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Step 3: Model selection */}
+          <div style={{ marginBottom: '0.5rem' }}>
+            <div className="form-step-label">
+              🤖 Step 3 — Choose AI Model
+            </div>
             <div className="form-group">
-              <div className="form-step-label" style={{ marginBottom: 8 }}>{t.step3}</div>
               <label>{t.modelLabel}</label>
               <div className="input-wrap">
-                <span className="input-icon"><ChevronDown size={14} /></span>
+                <span className="input-icon"><ChevronDown size={15} /></span>
                 <select className="field" value={values.model} onChange={e => set('model', e.target.value)}>
                   {models.length > 0
                     ? models.map(m => <option key={m} value={m}>{m}</option>)
@@ -167,17 +177,25 @@ export default function SoilForm({ models, weather, onWeatherFetched, onSubmit, 
             </div>
           </div>
 
+          {/* Action Buttons */}
           <div className="form-actions">
-            <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>
+            <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ fontSize: '1.05rem' }}>
               {loading
-                ? <><Loader2 size={18} className="spin" /> {t.analyzingBtn}</>
-                : <><ArrowRight size={18} /> {t.analyzeSoilBtn}</>
+                ? <><Loader2 size={18} className="spin" /> Analyzing...</>
+                : <>🌱 Find Best Crop</>
               }
             </button>
-            <button type="button" className="btn btn-secondary btn-lg" onClick={fillSample} title={t.fillSampleTitle}>
-              <Wand2 size={18} />
+            <button type="button" className="btn btn-secondary btn-lg" onClick={fillSample}
+              title="Fill with sample values for demo"
+              style={{ flexShrink: 0, paddingInline: 20 }}>
+              <Wand2 size={18} /> Sample
             </button>
           </div>
+
+          <div style={{ textAlign: 'center', marginTop: 10, fontSize: '0.85rem', color: 'var(--txt-muted)' }}>
+            💡 Tip: Click <strong>Sample</strong> to auto-fill demo values
+          </div>
+
         </form>
       </div>
     </div>

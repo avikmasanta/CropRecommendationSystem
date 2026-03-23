@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sprout, Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2, Check } from 'lucide-react'
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2, Check } from 'lucide-react'
 import Particles from '../components/Particles'
+import Logo from '../components/Logo'
 import { translations, LANGUAGES } from '../i18n'
 
 const HERO_IMAGE = '/assets/hero2.jpg'
@@ -18,7 +19,7 @@ function getStrength(pw, t) {
   return { score, label: labels[score], color: colors[score] }
 }
 
-export default function SignUpPage({ lang, setLang }) {
+export default function SignUpPage({ lang, setLang, onLogin, onSignup }) {
   const navigate = useNavigate()
   const t = translations[lang] || translations.en
   const [name, setName] = useState('')
@@ -38,6 +39,7 @@ export default function SignUpPage({ lang, setLang }) {
     await new Promise(r => setTimeout(r, 1400))
     setLoading(false)
     localStorage.setItem('farmcrop_user', JSON.stringify({ email, name }))
+    if (onSignup) onSignup()
     navigate('/')
   }
 
@@ -50,8 +52,7 @@ export default function SignUpPage({ lang, setLang }) {
           <img className="auth-visual-img" src={HERO_IMAGE} alt="Crop field" />
           <div className="auth-visual-overlay" />
           <div className="auth-visual-logo">
-            <div className="auth-visual-logo-icon"><Sprout size={20} color="white" /></div>
-            <span>{t.appName}</span>
+            <Logo size={20} fontSize="1.1rem" />
           </div>
           <div className="auth-visual-content">
             <div className="auth-testimonial">
@@ -85,8 +86,8 @@ export default function SignUpPage({ lang, setLang }) {
 
           <div className="auth-form-box">
             <div style={{ marginBottom: '2rem' }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--clr-primary-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--clr-primary)', marginBottom: 16 }}>
-                <Sprout size={22} />
+              <div style={{ marginBottom: 16 }}>
+                <Logo size={24} fontSize="1.4rem" />
               </div>
               <h2>{t.signupTitle}</h2>
               <p className="auth-sub">{t.signupSub}</p>
