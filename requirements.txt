@@ -6,3 +6,6 @@ scikit-learn
 google-generativeai
 gTTS
 python-dotenv
+flask-cors
+gunicorn
+requests

@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, abort, send_file, send_from_directory
+from flask_cors import CORS
 import os
 import joblib
 import numpy as np
@@ -11,6 +12,7 @@ from io import BytesIO
 load_dotenv()
 
 APP = Flask(__name__, static_folder='frontend_dist', static_url_path='')
+CORS(APP)
 MODELS = {}
 MODELS_DIR = os.path.join(os.path.dirname(__file__), 'models')
 
