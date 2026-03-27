@@ -2,7 +2,7 @@ services:
   - type: web
     name: crop-recommendation-api
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: npm run build && pip install -r requirements.txt
     startCommand: gunicorn app:APP
     envVars:
       - key: GOOGLE_API_KEY

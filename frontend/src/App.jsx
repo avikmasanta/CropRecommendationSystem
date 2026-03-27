@@ -6,6 +6,7 @@ import WeatherPanel from './components/WeatherPanel'
 import ResultsPanel from './components/ResultsPanel'
 import AiModal from './components/AiModal'
 import Particles from './components/Particles'
+import AlertSystem from './components/AlertSystem'
 import LoginPage from './pages/LoginPage'
 import SignUpPage from './pages/SignUpPage'
 import MarketPage from './pages/MarketPage'
@@ -85,6 +86,8 @@ function DashboardContent({ weather, setWeather, predictions, setPredictions, lo
         <h1 className="dashboard-title">Dashboard</h1>
         <p className="dashboard-subtitle">Welcome back, {user?.name || 'Farmer'} 👋</p>
       </div>
+
+      <AlertSystem weather={weather} />
 
       <div className="dashboard-grid">
         <div className="dash-main">
@@ -188,7 +191,7 @@ function AppShell({ theme, toggleTheme, lang, setLang, weather, setWeather, auto
 export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light')
   const [lang, setLang] = useState(() => localStorage.getItem('ui_lang') || 'en')
-  const [weather, setWeather] = useState({ temp: null, humidity: null, rain: null, wind: null })
+  const [weather, setWeather] = useState({ temp: null, humidity: null, rain: null, wind: null, forecast: [] })
   const [autoLocation, setAutoLocation] = useState(localStorage.getItem('farmcrop_location') || '')
 
   const autoDetectWeather = async () => {
@@ -196,9 +199,24 @@ export default function App() {
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const { latitude, longitude } = pos.coords
       try {
-        const geo = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,rain,wind_speed_10m`).then(r => r.json())
+        const geo = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,rain,wind_speed_10m&daily=temperature_2m_max,precipitation_sum&timezone=auto`).then(r => r.json())
         const c = geo.current
-        setWeather({ temp: c.temperature_2m, humidity: c.relative_humidity_2m, rain: c.rain, wind: c.wind_speed_10m })
+        const d = geo.daily || {}
+        
+        // Prepare forecast data for next 3 days
+        const forecast = (d.time || []).slice(0, 3).map((time, i) => ({
+          date: time,
+          maxTemp: d.temperature_2m_max[i],
+          rain: d.precipitation_sum[i]
+        }))
+
+        setWeather({ 
+          temp: c.temperature_2m, 
+          humidity: c.relative_humidity_2m, 
+          rain: c.rain, 
+          wind: c.wind_speed_10m,
+          forecast: forecast
+        })
         
         const loc = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`).then(r => r.json())
         const addr = loc.address || {}

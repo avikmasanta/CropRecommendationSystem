@@ -175,14 +175,30 @@ def models_list():
 
 
 def parse_features_from_dict(d):
+    ranges = {
+        'N': (0, 140),
+        'P': (5, 145),
+        'K': (5, 205),
+        'ph': (0, 14),
+        'temperature': (0, 60),
+        'humidity': (0, 100),
+        'rainfall': (0, 1000)
+    }
     vals = []
     for f in FEATURE_NAMES:
         if f not in d:
             raise KeyError(f"Missing feature: {f}")
-        vals.append(float(d[f]))
+        val = float(d[f])
+        if f in ranges:
+            min_val, max_val = ranges[f]
+            if val < min_val or val > max_val:
+                raise ValueError(f"Value for {f} ({val}) is out of range [{min_val}, {max_val}]")
+        vals.append(val)
     arr = np.array(vals).reshape(1, -1)
     if np.all(arr == 0):
-        raise ValueError("All features are zero; please provide valid inputs for prediction")
+        # Allow zero if it's within range, but the previous check was a sanity check
+        # Let's keep it but maybe it's less necessary now with explicit ranges
+        pass 
     return arr
 
 
@@ -340,6 +356,7 @@ def get_market_prices():
         
     return jsonify(data)
 
+load_models()
+
 if __name__ == '__main__':
-    load_models()
     APP.run(host='0.0.0.0', port=5000, debug=True)

@@ -1,0 +1,14 @@
+{
+  "name": "crop-recommendation-system-monolith",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "install:frontend": "npm install --prefix frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "build": "npm run install:frontend && npm run build:frontend",
+    "start": "gunicorn app:APP"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

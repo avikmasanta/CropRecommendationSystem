@@ -60,16 +60,26 @@ export default function SoilForm({ models, weather, onWeatherFetched, onSubmit, 
     onSubmit({ ...values, model })
   }
 
+  const RANGES = {
+    N: { min: 0, max: 140 },
+    P: { min: 5, max: 145 },
+    K: { min: 5, max: 205 },
+    ph: { min: 0, max: 14 },
+    temperature: { min: 0, max: 60 },
+    humidity: { min: 0, max: 100 },
+    rainfall: { min: 0, max: 1000 }
+  }
+
   const FIELDS = [
-    { name: 'N', label: '🟤 ' + t.nitrogenLabel,   unit: 'mg/kg', placeholder: 'e.g. 85',  helpText: 'Nitrogen content in soil' },
-    { name: 'P', label: '🟠 ' + t.phosphorusLabel, unit: 'mg/kg', placeholder: 'e.g. 58',  helpText: 'Phosphorus content in soil' },
-    { name: 'K', label: '🟡 ' + t.potassiumLabel,  unit: 'mg/kg', placeholder: 'e.g. 41',  helpText: 'Potassium content in soil' },
-    { name: 'ph', label: '⚗️ ' + t.phLabel,         unit: '0–14',  placeholder: 'e.g. 7.0', helpText: '7 is neutral (ideal for most crops)' },
+    { name: 'N', label: '🟤 ' + t.nitrogenLabel,   unit: 'mg/kg', placeholder: 'e.g. 85',  helpText: 'Nitrogen content in soil', ...RANGES.N },
+    { name: 'P', label: '🟠 ' + t.phosphorusLabel, unit: 'mg/kg', placeholder: 'e.g. 58',  helpText: 'Phosphorus content in soil', ...RANGES.P },
+    { name: 'K', label: '🟡 ' + t.potassiumLabel,  unit: 'mg/kg', placeholder: 'e.g. 41',  helpText: 'Potassium content in soil', ...RANGES.K },
+    { name: 'ph', label: '⚗️ ' + t.phLabel,         unit: '0–14',  placeholder: 'e.g. 7.0', helpText: '7 is neutral (ideal for most crops)', ...RANGES.ph },
   ]
   const CLIMATE = [
-    { name: 'temperature', label: '🌡️ ' + t.tempLabel,     unit: '°C', placeholder: 'e.g. 25',  helpText: 'Average temperature in your area', icon: <Thermometer size={15} /> },
-    { name: 'humidity',    label: '💧 ' + t.humidityLabel,  unit: '%',  placeholder: 'e.g. 70',  helpText: 'Average humidity percentage',         icon: <Droplets size={15} /> },
-    { name: 'rainfall',    label: '🌧️ ' + t.rainfallLabel,  unit: 'mm', placeholder: 'e.g. 150', helpText: 'Annual rainfall in millimeters',       icon: <CloudRain size={15} /> },
+    { name: 'temperature', label: '🌡️ ' + t.tempLabel,     unit: '°C', placeholder: 'e.g. 25',  helpText: 'Average temperature in your area', icon: <Thermometer size={15} />, ...RANGES.temperature },
+    { name: 'humidity',    label: '💧 ' + t.humidityLabel,  unit: '%',  placeholder: 'e.g. 70',  helpText: 'Average humidity percentage',         icon: <Droplets size={15} />, ...RANGES.humidity },
+    { name: 'rainfall',    label: '🌧️ ' + t.rainfallLabel,  unit: 'mm', placeholder: 'e.g. 150', helpText: 'Annual rainfall in millimeters',       icon: <CloudRain size={15} />, ...RANGES.rainfall },
   ]
 
   return (
@@ -98,11 +108,17 @@ export default function SoilForm({ models, weather, onWeatherFetched, onSubmit, 
                   <div className="input-wrap">
                     <span className="input-icon" style={{ fontSize: '1rem', left: 12, color: 'var(--clr-primary)' }}>•</span>
                     <input className="field" type="number" step="any" required placeholder={f.placeholder}
+                      min={f.min} max={f.max}
                       value={values[f.name]} onChange={e => set(f.name, e.target.value)}
                       inputMode="decimal"
                     />
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--txt-muted)', marginTop: 4, paddingLeft: 2 }}>{f.helpText}</div>
+                  <div style={{ fontSize: '0.8rem', color: (values[f.name] !== '' && (values[f.name] < f.min || values[f.name] > f.max)) ? 'var(--clr-error, #ff4d4d)' : 'var(--txt-muted)', marginTop: 4, paddingLeft: 2 }}>
+                    {(values[f.name] !== '' && (values[f.name] < f.min || values[f.name] > f.max)) 
+                      ? `⚠️ Value must be between ${f.min} and ${f.max}`
+                      : f.helpText
+                    }
+                  </div>
                 </div>
               ))}
             </div>
@@ -150,9 +166,16 @@ export default function SoilForm({ models, weather, onWeatherFetched, onSubmit, 
                   <div className="input-wrap">
                     <span className="input-icon">{f.icon}</span>
                     <input className="field" type="number" step="any" required placeholder={f.placeholder}
+                      min={f.min} max={f.max}
                       value={values[f.name]} onChange={e => set(f.name, e.target.value)}
                       inputMode="decimal"
                     />
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: (values[f.name] !== '' && (values[f.name] < f.min || values[f.name] > f.max)) ? 'var(--clr-error, #ff4d4d)' : 'var(--txt-muted)', marginTop: 4, paddingLeft: 2 }}>
+                    {(values[f.name] !== '' && (values[f.name] < f.min || values[f.name] > f.max)) 
+                      ? `⚠️ Value must be between ${f.min} and ${f.max}`
+                      : f.helpText || ''
+                    }
                   </div>
                 </div>
               ))}
