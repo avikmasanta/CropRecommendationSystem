@@ -6,9 +6,7 @@ export default function AlertSystem({ weather }) {
   const { t, lang } = useContext(LangContext)
   const [activeAlert, setActiveAlert] = useState(null)
   const [showPopup, setShowPopup] = useState(false)
-  const [forecast, setForecast] = useState(null)
 
-  // Simulation of a "Live Scheme Feed"
   const SCHEME_NEWS = [
     {
       id: 1,
@@ -32,10 +30,10 @@ export default function AlertSystem({ weather }) {
     if (tomorrow && tomorrow.rain > 0.5) {
         setActiveAlert({
             type: 'weather',
-            title: lang === 'hi' ? 'कल बारिश का अलर्ट!' : 'Rainy Day Tomorrow!',
-            msg: lang === 'hi' ? `कल ${tomorrow.rain}mm बारिश होने की संभावना है। अपनी फसलों को सुरक्षित रखें।` : `Expect ${tomorrow.rain}mm of rain tomorrow. Secure your crops and planning accordingly.`,
-            icon: <CloudRain className="pulse-icon" size={20} />,
-            color: '#60a5fa',
+            title: lang === 'hi' ? 'कल बारिश का अलर्ट!' : 'Rain Expected Tomorrow',
+            msg: lang === 'hi' ? `कल ${tomorrow.rain}mm बारिश होने की संभावना है। अपनी फसलों को सुरक्षित रखें।` : `Expect ${tomorrow.rain}mm of rain tomorrow. Secure your crops and plan accordingly.`,
+            icon: <CloudRain size={18} />,
+            color: '#4a90d9',
             day: 'tomorrow'
         })
     } else if (tomorrow && tomorrow.maxTemp > 35) {
@@ -43,8 +41,8 @@ export default function AlertSystem({ weather }) {
             type: 'weather',
             title: lang === 'hi' ? 'कल तेज गर्मी की चेतावनी' : 'High Heat Tomorrow',
             msg: lang === 'hi' ? `कल तापमान ${tomorrow.maxTemp}°C तक जा सकता है। सिंचाई का ध्यान रखें।` : `Temperatures will hit ${tomorrow.maxTemp}°C tomorrow. Plan your irrigation early.`,
-            icon: <Sun className="pulse-icon" size={20} />,
-            color: '#fbbf24',
+            icon: <Sun size={18} />,
+            color: '#d4a026',
             day: 'tomorrow'
         })
     } else if (weather.rain > 0) {
@@ -52,19 +50,18 @@ export default function AlertSystem({ weather }) {
             type: 'weather',
             title: lang === 'hi' ? 'आज बारिश हो रही है' : 'It is Raining Now',
             msg: lang === 'hi' ? 'क्षेत्र में वर्तमान में वर्षा हो रही है।' : 'Rain is currently being detected in your location.',
-            icon: <CloudRain className="pulse-icon" size={20} />,
-            color: '#38bdf8',
+            icon: <CloudRain size={18} />,
+            color: '#4a90d9',
             day: 'today'
         })
     } else {
-        // Fallback to a scheme alert if no major weather event tomorrow
         const randomScheme = SCHEME_NEWS[Math.floor(Math.random() * SCHEME_NEWS.length)]
         setActiveAlert({
             type: 'scheme',
             title: randomScheme.title,
             msg: randomScheme.desc,
-            icon: <Zap className="pulse-icon" size={20} />,
-            color: '#4ade80',
+            icon: <Zap size={18} />,
+            color: 'var(--clr-primary)',
             data: randomScheme
         })
     }
@@ -74,50 +71,50 @@ export default function AlertSystem({ weather }) {
 
   return (
     <div className="alert-system-container">
-      <div className="alert-bar glass" style={{ borderLeft: `4px solid ${activeAlert.color}` }}>
-        <div className="alert-icon-wrap" style={{ background: `${activeAlert.color}20`, color: activeAlert.color }}>
+      <div className="alert-bar" style={{ borderLeft: `3px solid ${activeAlert.color}` }}>
+        <div className="alert-icon-wrap" style={{ background: `${activeAlert.color}12`, color: activeAlert.color }}>
           {activeAlert.icon}
         </div>
         <div className="alert-content">
           <div className="alert-title">{activeAlert.title}</div>
           <div className="alert-msg">{activeAlert.msg}</div>
         </div>
-        <button className="btn btn-sm btn-primary-alt" onClick={() => setShowPopup(true)} style={{ marginLeft: 'auto', gap: 6 }}>
-          <Info size={14} /> {lang === 'hi' ? 'देखें' : 'View'}
+        <button className="btn btn-sm btn-primary-alt" onClick={() => setShowPopup(true)} style={{ marginLeft: 'auto', gap: 5 }}>
+          <Info size={13} /> {lang === 'hi' ? 'देखें' : 'View'}
         </button>
       </div>
 
       {showPopup && (
-        <div className="alert-modal-overlay fade-in" onClick={() => setShowPopup(false)}>
-          <div className="alert-modal-card slide-up" onClick={e => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowPopup(false)}><X size={20} /></button>
-            <div className="modal-banner" style={{ 
+        <div className="alert-modal-overlay" onClick={() => setShowPopup(false)}>
+          <div className="alert-modal-card" onClick={e => e.stopPropagation()}>
+            <button className="alert-modal-close" onClick={() => setShowPopup(false)}><X size={18} /></button>
+            <div className="alert-modal-banner" style={{ 
                 background: activeAlert.type === 'scheme' 
                     ? `url(${activeAlert.data.image}) center/cover` 
                     : `linear-gradient(135deg, ${activeAlert.color}, #1e293b)`
             }}>
-                <div className="modal-banner-overlay">
-                    <div className="badge" style={{ background: activeAlert.color }}>{activeAlert.type.toUpperCase()}</div>
+                <div className="alert-modal-banner-overlay">
+                    <div className="badge" style={{ background: activeAlert.color, color: 'white' }}>{activeAlert.type.toUpperCase()}</div>
                 </div>
             </div>
-            <div className="modal-body">
-              <h2 className="modal-title">{activeAlert.title}</h2>
-              <p className="modal-desc">{activeAlert.msg}</p>
+            <div className="alert-modal-body">
+              <h2 className="alert-modal-title">{activeAlert.title}</h2>
+              <p className="alert-modal-desc">{activeAlert.msg}</p>
               
               {activeAlert.type === 'scheme' && (
-                <div className="modal-actions">
-                  <a href={activeAlert.data.link} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-full" style={{ gap: 10 }}>
-                    Official Website <ExternalLink size={16} />
+                <div>
+                  <a href={activeAlert.data.link} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-full" style={{ gap: 8 }}>
+                    Official Website <ExternalLink size={14} />
                   </a>
                 </div>
               )}
 
-              {activeAlert.type === 'weather' && (
+              {activeAlert.type === 'weather' && weather.forecast && (
                  <div className="weather-forecast-mini">
                     {weather.forecast.map((f, i) => (
                         <div className="forecast-item" key={i} style={{ opacity: i === 0 ? 0.6 : 1 }}>
-                            <span className="label">{i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : 'Next Day'}</span>
-                            <span className="val">{f.maxTemp}°C | {f.rain}mm</span>
+                            <span className="forecast-label">{i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : 'Next Day'}</span>
+                            <span className="forecast-val">{f.maxTemp}°C | {f.rain}mm</span>
                         </div>
                     ))}
                  </div>
@@ -129,138 +126,127 @@ export default function AlertSystem({ weather }) {
 
       <style>{`
         .alert-system-container {
-          margin-bottom: 2rem;
-          animation: fadeSlideDown 0.5s ease-out;
+          margin-bottom: 1.5rem;
+          animation: revealUp 0.4s ease;
         }
         .alert-bar {
           display: flex;
           align-items: center;
-          gap: 1rem;
-          padding: 1rem 1.25rem;
-          border-radius: 1.25rem;
+          gap: 0.75rem;
+          padding: 0.875rem 1.25rem;
+          border-radius: var(--r-md);
           background: var(--bg-surface);
           border: 1px solid var(--border);
-          box-shadow: var(--shadow-sm);
+          box-shadow: var(--shadow-xs);
         }
         .alert-icon-wrap {
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
+          width: 36px;
+          height: 36px;
+          border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
         }
         .alert-title {
-          font-weight: 800;
-          font-size: 0.95rem;
-          color: var(--txt-main);
+          font-weight: 600;
+          font-size: 0.9rem;
+          color: var(--txt-primary);
         }
         .alert-msg {
-          font-size: 0.85rem;
+          font-size: 0.8rem;
           color: var(--txt-muted);
-        }
-        .pulse-icon {
-          animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-          0% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.1); opacity: 0.7; }
-          100% { transform: scale(1); opacity: 1; }
+          line-height: 1.4;
         }
 
-        /* Modal Styles */
+        /* Modal */
         .alert-modal-overlay {
           position: fixed;
           top: 0; left: 0; right: 0; bottom: 0;
-          background: rgba(0,0,0,0.7);
-          backdrop-filter: blur(8px);
+          background: rgba(0,0,0,0.5);
+          backdrop-filter: blur(4px);
           z-index: 1000;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 1.5rem;
+          animation: fadeIn 0.15s ease;
         }
         .alert-modal-card {
           background: var(--bg-surface);
           border: 1px solid var(--border);
-          border-radius: 2rem;
+          border-radius: var(--r-xl);
           width: 100%;
-          max-width: 500px;
+          max-width: 480px;
           overflow: hidden;
           position: relative;
-          box-shadow: var(--shadow-2xl);
+          box-shadow: var(--shadow-lg);
+          animation: modalSlide 0.25s ease;
         }
-        .modal-close {
+        .alert-modal-close {
           position: absolute;
-          top: 1.25rem; right: 1.25rem;
-          background: rgba(0,0,0,0.5);
+          top: 1rem; right: 1rem;
+          background: rgba(0,0,0,0.4);
           color: white;
           border: none;
-          width: 36px; height: 36px;
+          width: 32px; height: 32px;
           border-radius: 50%;
           cursor: pointer;
           z-index: 10;
-          transition: all 0.2s;
+          display: flex; align-items: center; justify-content: center;
+          transition: background 0.15s;
         }
-        .modal-close:hover { background: #ef4444; }
-        .modal-banner {
-          height: 200px;
+        .alert-modal-close:hover { background: #c53030; }
+        .alert-modal-banner {
+          height: 180px;
           position: relative;
         }
-        .modal-banner-overlay {
+        .alert-modal-banner-overlay {
           position: absolute;
-          top: 1.25rem; left: 1.25rem;
+          top: 1rem; left: 1rem;
         }
-        .modal-body {
-          padding: 2rem;
+        .alert-modal-body {
+          padding: 1.75rem;
         }
-        .modal-title {
-          font-size: 1.5rem;
-          font-weight: 900;
-          margin-bottom: 0.75rem;
-          color: var(--txt-main);
+        .alert-modal-title {
+          font-family: var(--font-head);
+          font-size: 1.3rem;
+          font-weight: 700;
+          margin-bottom: 0.6rem;
+          color: var(--txt-primary);
         }
-        .modal-desc {
+        .alert-modal-desc {
           color: var(--txt-secondary);
           line-height: 1.6;
-          margin-bottom: 2rem;
+          margin-bottom: 1.5rem;
+          font-size: var(--text-base);
         }
         .weather-forecast-mini {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-          background: var(--bg-accent);
-          padding: 1.25rem;
-          border-radius: 1.25rem;
+          gap: 0.75rem;
+          background: var(--bg-input);
+          padding: 1rem;
+          border-radius: var(--r-md);
+          border: 1px solid var(--border);
         }
         .forecast-item {
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 3px;
         }
-        .forecast-item .label {
-          font-size: 0.75rem;
+        .forecast-label {
+          font-size: 0.7rem;
           color: var(--txt-muted);
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          font-weight: 700;
+          letter-spacing: 0.04em;
+          font-weight: 600;
         }
-        .forecast-item .val {
-          font-size: 1.1rem;
-          font-weight: 800;
+        .forecast-val {
+          font-size: 1rem;
+          font-weight: 700;
           color: var(--clr-primary);
         }
-
-        @keyframes fadeSlideDown {
-          from { opacity: 0; transform: translateY(-20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(40px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .slide-up { animation: slideUp 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); }
       `}</style>
     </div>
   )

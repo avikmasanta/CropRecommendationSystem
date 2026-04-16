@@ -5,6 +5,11 @@ env/
 .venv/
 node_modules/
 frontend_dist/
+dist/
+build/
 *.log
 .DS_Store
 .vscode/
+.idea/
+*.local
+feedback.csv

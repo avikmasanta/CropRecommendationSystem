@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Printer, Sprout, Droplets, Bug, AlertTriangle, Loader2, Sparkles, CheckCircle2, Info } from 'lucide-react'
 import { LangContext } from '../App'
-import Particles from '../components/Particles'
 import { getCropGuide } from '../data/cropGuides'
 
 const CROP_IMAGES = {
@@ -24,7 +23,6 @@ export default function CropGuidePage() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    // Generate guide instantly from local dynamic templates with photos
     setLoading(true);
     setTimeout(() => {
       try {
@@ -35,30 +33,26 @@ export default function CropGuidePage() {
         setError("Failed to load crop guide.");
         setLoading(false);
       }
-    }, 600); // Small artificial delay for smooth UI transition
+    }, 600);
   }, [crop, lang])
 
   const handlePrint = () => window.print()
 
   if (loading) return (
-    <div className="main" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-      <Particles />
-      <div className="loading-spinner">
-        <Loader2 size={48} className="spin" color="var(--clr-primary)" />
-      </div>
-      <h2 style={{ marginTop: '2rem' }}>{t.guideLoading}</h2>
-      <p style={{ color: 'var(--txt-muted)' }}>Asking Gemini AI for the best farming practices for {crop}...</p>
+    <div className="page-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+      <Loader2 size={40} className="spin" color="var(--clr-primary)" />
+      <h2 style={{ marginTop: '1.5rem', fontFamily: 'var(--font-head)', fontWeight: 600 }}>{t.guideLoading}</h2>
+      <p style={{ color: 'var(--txt-muted)', fontSize: '0.9rem' }}>Loading farming guide for {crop}...</p>
     </div>
   )
 
   if (error) return (
-    <div className="main" style={{ textAlign: 'center', padding: '4rem' }}>
-       <Particles />
-       <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>⚠️</div>
-       <h2>Something went wrong</h2>
-       <p style={{ color: 'var(--txt-muted)', marginBottom: '2rem', maxWidth: 600, marginInline: 'auto' }}>{error}</p>
-       <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-         <button className="btn btn-primary" onClick={() => window.location.reload()}>🔄 Retry</button>
+    <div className="page-content" style={{ textAlign: 'center', padding: '4rem' }}>
+       <AlertTriangle size={48} color="var(--clr-accent)" style={{ marginBottom: '1rem' }} />
+       <h2 style={{ fontFamily: 'var(--font-head)' }}>Something went wrong</h2>
+       <p style={{ color: 'var(--txt-muted)', marginBottom: '2rem', maxWidth: 500, marginInline: 'auto' }}>{error}</p>
+       <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+         <button className="btn btn-primary" onClick={() => window.location.reload()}>Retry</button>
          <button className="btn btn-secondary" onClick={() => navigate('/')}>{t.guideBack}</button>
        </div>
     </div>
@@ -66,77 +60,76 @@ export default function CropGuidePage() {
 
   return (
     <>
-      <Particles />
-      <div className="main guide-page" style={{ maxWidth: 900, margin: '0 auto', padding: '2rem' }}>
+      <div className="page-content guide-page" style={{ maxWidth: 880 }}>
         
         {/* Header Actions */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-           <button className="btn btn-secondary" onClick={() => navigate('/')} style={{ gap: 8, height: 44, paddingInline: 16 }}>
-             <ArrowLeft size={18} /> {t.guideBack}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+           <button className="btn btn-secondary" onClick={() => navigate('/')} style={{ gap: 6, height: 38, paddingInline: 14, fontSize: '0.85rem' }}>
+             <ArrowLeft size={16} /> {t.guideBack}
            </button>
-           <button className="btn btn-secondary no-print" onClick={handlePrint} style={{ gap: 8, height: 44, paddingInline: 16 }}>
-             <Printer size={18} /> {t.guidePrint}
+           <button className="btn btn-secondary no-print" onClick={handlePrint} style={{ gap: 6, height: 38, paddingInline: 14, fontSize: '0.85rem' }}>
+             <Printer size={16} /> {t.guidePrint}
            </button>
         </div>
 
         {/* Hero Section */}
-        <div className="guide-hero card" style={{ 
+        <div className="card" style={{ 
           padding: 0, 
           overflow: 'hidden', 
-          marginBottom: '3rem', 
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 24,
-          boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative'
+          marginBottom: '2rem', 
+          borderRadius: 16
         }}>
            <div style={{ 
-             height: 380, 
-             background: `linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%), url(${CROP_IMAGES[crop.toLowerCase()] || FALLBACK}) center/cover`,
+             height: 320, 
+             background: `linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%), url(${CROP_IMAGES[crop.toLowerCase()] || FALLBACK}) center/cover`,
              display: 'flex',
              flexDirection: 'column',
              alignItems: 'center',
              justifyContent: 'flex-end',
-             padding: '3rem 2rem',
+             padding: '2.5rem 2rem',
              color: 'white',
              textAlign: 'center'
            }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'linear-gradient(135deg, var(--clr-primary), #2dd4bf)', padding: '8px 20px', borderRadius: 99, marginBottom: '1.5rem', fontSize: '0.85rem', fontWeight: 800, letterSpacing: 1, boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)' }}>
-                <Sparkles size={16} /> AI GENERATED GUIDE
+              <div style={{ 
+                display: 'inline-flex', alignItems: 'center', gap: 6, 
+                background: 'var(--clr-primary)', padding: '5px 14px', 
+                borderRadius: 6, marginBottom: '1rem', 
+                fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.04em',
+                textTransform: 'uppercase'
+              }}>
+                <Sparkles size={13} /> Farming Guide
               </div>
-              <h1 style={{ fontSize: '4.5rem', marginBottom: '0.5rem', textTransform: 'capitalize', fontWeight: 900, textShadow: '0 10px 30px rgba(0,0,0,0.5)', lineHeight: 1.1 }}>{crop} {t.guideTitle}</h1>
-              <p style={{ fontSize: '1.4rem', opacity: 0.85, fontWeight: 500, maxWidth: 600 }}>{t.guideHowToGrow} {crop} {t.guideSteps?.toLowerCase()}</p>
+              <h1 style={{ fontSize: '3rem', marginBottom: '0.4rem', textTransform: 'capitalize', fontWeight: 700, fontFamily: 'var(--font-head)', lineHeight: 1.1 }}>{crop}</h1>
+              <p style={{ fontSize: '1.1rem', opacity: 0.85, fontWeight: 400, maxWidth: 500 }}>{t.guideHowToGrow} {crop}</p>
            </div>
         </div>
 
-        <div className="guide-content-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '2rem' }}>
+        <div className="guide-content-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '1.5rem' }}>
           
           {/* Main Steps */}
           <section>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '2rem' }}>
-              <span style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--clr-primary-glow)', color: 'var(--clr-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Sprout size={24} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.5rem' }}>
+              <span style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--clr-primary-subtle)', color: 'var(--clr-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Sprout size={18} />
               </span>
-              <h2 style={{ fontSize: '1.8rem' }}>{t.guideSteps}</h2>
+              <h2 style={{ fontSize: '1.4rem', fontFamily: 'var(--font-head)', fontWeight: 700 }}>{t.guideSteps}</h2>
             </div>
 
-            <div className="steps-container" style={{ position: 'relative', paddingLeft: '3rem', marginTop: '1rem' }}>
-               <div style={{ position: 'absolute', left: '1.2rem', top: 10, bottom: 0, width: 3, background: 'linear-gradient(to bottom, var(--clr-primary) 0%, rgba(16, 185, 129, 0.1) 100%)', borderRadius: 3 }} />
+            <div className="steps-container" style={{ position: 'relative', paddingLeft: '2.5rem', marginTop: '0.75rem' }}>
+               <div style={{ position: 'absolute', left: '1rem', top: 8, bottom: 0, width: 2, background: 'var(--border)', borderRadius: 2 }} />
                {guide?.steps?.map((step, idx) => (
-                 <div key={idx} className="step-item fade-in-up" style={{ marginBottom: '3rem', position: 'relative', animationDelay: `${idx * 0.1}s` }}>
+                 <div key={idx} className="step-item" style={{ marginBottom: '1.75rem', position: 'relative', animation: `revealUp 0.4s ease ${idx * 80}ms both` }}>
                     <div style={{ 
-                      position: 'absolute', left: '-3.6rem', top: 0, 
-                      width: 44, height: 44, borderRadius: '50%', 
-                      background: 'linear-gradient(135deg, var(--clr-primary), #059669)', color: 'white', 
+                      position: 'absolute', left: '-2.95rem', top: 0, 
+                      width: 34, height: 34, borderRadius: '50%', 
+                      background: 'var(--clr-primary)', color: 'white', 
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '1.1rem', fontWeight: 900, zIndex: 1,
-                      border: '4px solid var(--bg-main)',
-                      boxShadow: '0 0 0 2px rgba(16, 185, 129, 0.3), 0 10px 20px rgba(0,0,0,0.2)'
+                      fontSize: '0.85rem', fontWeight: 700, zIndex: 1,
+                      border: '3px solid var(--bg-base)'
                     }}>
                       {idx + 1}
                     </div>
-                    <div className="card step-card" style={{ padding: '1.8rem', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(10px)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+                    <div className="card" style={{ padding: '1.25rem', borderRadius: 12, transition: 'box-shadow 0.2s' }}>
                        {(() => {
                          let stepObj = step;
                          if (typeof step === 'string') {
@@ -144,102 +137,88 @@ export default function CropGuidePage() {
                          }
                          if (typeof stepObj === 'object' && stepObj !== null) {
                            return (
-                             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                               {stepObj.title && <strong style={{ color: 'var(--clr-primary)', fontSize: '1.25rem' }}>{stepObj.title}</strong>}
+                             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                               {stepObj.title && <strong style={{ color: 'var(--clr-primary)', fontSize: '1.05rem' }}>{stepObj.title}</strong>}
                                {stepObj.image && (
                                  <img 
                                    src={stepObj.image}
                                    alt={stepObj.title || 'Step illustration'}
-                                   style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }}
+                                   style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border)' }}
                                    loading="lazy"
                                  />
                                )}
-                               <p style={{ margin: 0, color: 'var(--txt-primary)', fontSize: '1.05rem', lineHeight: 1.6 }}>{stepObj.description || stepObj.desc || stepObj.text}</p>
+                               <p style={{ margin: 0, color: 'var(--txt-secondary)', fontSize: '0.95rem', lineHeight: 1.6 }}>{stepObj.description || stepObj.desc || stepObj.text}</p>
                              </div>
                            )
                          }
                          return (
-                           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                             <img 
-                               src={`https://loremflickr.com/400/250/${crop},farming`}
-                               alt="Step illustration"
-                               style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }}
-                               loading="lazy"
-                             />
-                             <p style={{ margin: 0, color: 'var(--txt-primary)', fontSize: '1.05rem', lineHeight: 1.6 }}>{step}</p>
-                           </div>
+                           <p style={{ margin: 0, color: 'var(--txt-secondary)', fontSize: '0.95rem', lineHeight: 1.6 }}>{step}</p>
                          );
                        })()}
                     </div>
                  </div>
                ))}
-               {(!guide?.steps || !Array.isArray(guide.steps)) && <p style={{ opacity: 0.5 }}>No steps available.</p>}
+               {(!guide?.steps || !Array.isArray(guide.steps)) && <p style={{ color: 'var(--txt-muted)' }}>No steps available.</p>}
             </div>
           </section>
 
           {/* Sidebar: Fertilizers & Diseases */}
-          <aside style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <aside style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
              
              {/* Fertilizers */}
-             <div className="card hover-glow" style={{ padding: '2rem', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: 24, background: 'linear-gradient(180deg, rgba(56, 189, 248, 0.05) 0%, rgba(0,0,0,0) 100%)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.5rem', color: '#38bdf8' }}>
-                   <div style={{ padding: 10, background: 'rgba(56, 189, 248, 0.1)', borderRadius: 12 }}>
-                     <Droplets size={24} />
+             <div className="card" style={{ padding: '1.5rem', borderRadius: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1rem', color: '#4a7dc9' }}>
+                   <div style={{ padding: 8, background: 'rgba(74, 125, 201, 0.08)', borderRadius: 8 }}>
+                     <Droplets size={18} />
                    </div>
-                   <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0 }}>{t.guideFertilizers}</h3>
+                   <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, fontFamily: 'var(--font-head)' }}>{t.guideFertilizers}</h3>
                 </div>
-                <p style={{ fontSize: '1.05rem', lineHeight: 1.7, color: 'var(--txt-secondary)', margin: 0 }}>
+                <p style={{ fontSize: '0.9rem', lineHeight: 1.7, color: 'var(--txt-secondary)', margin: 0 }}>
                    {guide?.fertilizers}
                 </p>
              </div>
 
              {/* Diseases */}
-             <div className="card hover-glow" style={{ padding: '2rem', border: '1px solid rgba(248, 113, 113, 0.2)', borderRadius: 24, background: 'linear-gradient(180deg, rgba(248, 113, 113, 0.05) 0%, rgba(0,0,0,0) 100%)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.5rem', color: '#f87171' }}>
-                   <div style={{ padding: 10, background: 'rgba(248, 113, 113, 0.1)', borderRadius: 12 }}>
-                     <Bug size={24} />
+             <div className="card" style={{ padding: '1.5rem', borderRadius: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1rem', color: '#c53030' }}>
+                   <div style={{ padding: 8, background: 'rgba(197, 48, 48, 0.06)', borderRadius: 8 }}>
+                     <Bug size={18} />
                    </div>
-                   <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0 }}>{t.guideDiseases}</h3>
+                   <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, fontFamily: 'var(--font-head)' }}>{t.guideDiseases}</h3>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                    {Array.isArray(guide?.diseases) ? guide.diseases.map((d, idx) => (
-                     <div key={idx} className="disease-item" style={{ borderBottom: idx < guide.diseases.length - 1 ? '1px dashed rgba(255,255,255,0.1)' : 'none', paddingBottom: idx < guide.diseases.length - 1 ? '1.5rem' : 0 }}>
-                        <div style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8, color: '#fca5a5' }}>
-                           <AlertTriangle size={16} /> {d.name || 'Unknown Disease'}
+                     <div key={idx} style={{ borderBottom: idx < guide.diseases.length - 1 ? '1px solid var(--border)' : 'none', paddingBottom: idx < guide.diseases.length - 1 ? '1.25rem' : 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--txt-primary)' }}>
+                           <AlertTriangle size={14} color="#c53030" /> {d.name || 'Unknown Disease'}
                         </div>
                         {d.image && (
                           <img 
                             src={d.image}
                             alt={`${d.name} symptom`}
-                            style={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 12, marginBottom: 16, border: '1px solid rgba(248, 113, 113, 0.2)' }}
+                            style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 8, marginBottom: 10, border: '1px solid var(--border)' }}
                             loading="lazy"
                           />
                         )}
-                        <p style={{ fontSize: '0.95rem', color: 'var(--txt-muted)', marginBottom: 12, lineHeight: 1.5 }}>
-                           <strong style={{ color: 'white' }}>Symptoms:</strong> {d.symptoms || 'N/A'}
+                        <p style={{ fontSize: '0.85rem', color: 'var(--txt-muted)', marginBottom: 8, lineHeight: 1.5 }}>
+                           <strong style={{ color: 'var(--txt-secondary)' }}>Symptoms:</strong> {d.symptoms || 'N/A'}
                         </p>
-                        <div style={{ background: 'rgba(16, 185, 129, 0.1)', padding: '12px 16px', borderRadius: 12, borderLeft: '4px solid var(--clr-primary)' }}>
-                           <p style={{ fontSize: '0.95rem', margin: 0, lineHeight: 1.5 }}>
+                        <div style={{ background: 'var(--clr-primary-subtle)', padding: '10px 12px', borderRadius: 8, borderLeft: '3px solid var(--clr-primary)' }}>
+                           <p style={{ fontSize: '0.85rem', margin: 0, lineHeight: 1.5 }}>
                              <strong style={{ color: 'var(--clr-primary)' }}>Treatment:</strong> {d.treatment || 'N/A'}
                            </p>
                         </div>
-                        {d.image_desc && (
-                          <div style={{ marginTop: 12, fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', background: 'rgba(0,0,0,0.2)', padding: '8px 12px', borderRadius: 8, display: 'flex', gap: 8 }}>
-                             <Info size={14} style={{ flexShrink: 0, marginTop: 2 }} />
-                             <span>{d.image_desc}</span>
-                          </div>
-                        )}
                      </div>
-                   )) : <p style={{ opacity: 0.5 }}>No disease info available.</p>}
+                   )) : <p style={{ color: 'var(--txt-muted)' }}>No disease info available.</p>}
                 </div>
              </div>
 
           </aside>
         </div>
 
-        <div style={{ marginTop: '5rem', padding: '2rem', background: 'var(--clr-primary-glow)', borderRadius: 20, textAlign: 'center', opacity: 0.8 }}>
-           <p style={{ fontSize: '0.9rem', color: 'var(--clr-primary)', fontWeight: 600, margin: 0 }}>
-             <Info size={16} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} />
+        <div style={{ marginTop: '3rem', padding: '1.25rem 1.5rem', background: 'var(--clr-primary-subtle)', borderRadius: 12, textAlign: 'center', border: '1px solid var(--clr-primary-border)' }}>
+           <p style={{ fontSize: '0.82rem', color: 'var(--clr-primary)', fontWeight: 500, margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+             <Info size={14} />
              {t.guideDisclaimer}
            </p>
         </div>
@@ -247,44 +226,17 @@ export default function CropGuidePage() {
 
       <style>{`
         @media print {
-          .no-print, header, .Particles, footer { display: none !important; }
+          .no-print, header, footer { display: none !important; }
           .main { padding: 0 !important; margin: 0 !important; max-width: 100% !important; background: white !important; color: black !important; }
           .card { border: 1px solid #ddd !important; box-shadow: none !important; color: black !important; background: white !important; }
-          .guide-hero { border: 2px solid #333 !important; }
-          .guide-hero h1, .guide-hero p { text-shadow: none !important; color: black !important; }
-          .guide-hero > div { background: white !important; }
-          .step-item .card { background: white !important; border-bottom: 2px solid #eee !important; box-shadow: none !important; }
         }
         
-        .fade-in-up {
-          animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
-        
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        .step-item:hover .step-card {
-          transform: translateX(12px) scale(1.01);
-          border-color: rgba(16, 185, 129, 0.4) !important;
-          box-shadow: 0 15px 35px -5px rgba(16, 185, 129, 0.15) !important;
-          background: rgba(255,255,255,0.04) !important;
-        }
-        
-        .hover-glow {
-          transition: all 0.3s ease;
-        }
-        .hover-glow:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 20px 40px -10px rgba(0,0,0,0.4);
+        .step-item:hover .card {
+          box-shadow: var(--shadow-md);
         }
 
         @media (max-width: 900px) {
           .guide-content-grid { grid-template-columns: 1fr !important; }
-          .guide-hero { height: auto; }
-          .guide-hero > div { padding: 3rem 1.5rem !important; height: auto !important; }
-          .guide-hero h1 { fontSize: 3rem !important; }
         }
       `}</style>
     </>

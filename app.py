@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 from gtts import gTTS
 from io import BytesIO
+import csv
+from datetime import datetime
 
 load_dotenv()
 
@@ -356,7 +358,142 @@ def get_market_prices():
         
     return jsonify(data)
 
+
+@APP.route('/api/diagnose-disease', methods=['POST'])
+def diagnose_disease():
+    data = request.json
+    image_b64 = data.get('image')
+    mime_type = data.get('mimeType', 'image/jpeg')
+
+    if not image_b64:
+        return jsonify({'error': 'No image provided'}), 400
+
+    if gemini_model is None:
+        return jsonify({'error': 'Gemini model not configured. Set GOOGLE_API_KEY.'}), 500
+
+    prompt = """
+    You are an expert agricultural pathologist. Analyze this crop/plant image for any diseases.
+    
+    Respond in JSON format with exactly these keys:
+    - "disease": Name of the disease (or "Healthy" if no disease found)
+    - "severity": "High", "Medium", or "Low"
+    - "description": Brief description of what you observe (2-3 sentences)
+    - "treatment": Recommended treatment steps (2-3 sentences)
+    
+    Return ONLY valid JSON, no markdown formatting.
+    """
+
+    try:
+        import base64
+        image_bytes = base64.b64decode(image_b64)
+        
+        response = gemini_model.generate_content([
+            prompt,
+            {"mime_type": mime_type, "data": image_bytes}
+        ])
+        
+        clean_json = response.text.strip()
+        if clean_json.startswith('```json'):
+            clean_json = clean_json[7:-3].strip()
+        elif clean_json.startswith('```'):
+            clean_json = clean_json[3:-3].strip()
+        
+        import json
+        try:
+            result = json.loads(clean_json)
+            return jsonify(result)
+        except:
+            return jsonify({
+                'disease': 'Analysis Complete',
+                'severity': 'Medium',
+                'description': clean_json[:500],
+                'treatment': 'Please consult a local agricultural expert for specific treatment.'
+            })
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': f'AI Analysis Error: {str(e)}'}), 500
+
+
+@APP.route('/api/predict-price', methods=['POST'])
+def predict_price():
+    data = request.json
+    region = data.get('region', 'Unknown')
+    crop = data.get('crop', 'Unknown')
+    target_date = data.get('date', '')
+
+    if gemini_model is None:
+        return jsonify({'error': 'Gemini model not configured. Set GOOGLE_API_KEY.'}), 500
+
+    prompt = f"""
+    You are an agricultural market analyst for India. Predict the price for:
+    - Crop: {crop}
+    - Region: {region}
+    - Target Date: {target_date or 'current'}
+    
+    Based on typical Indian agricultural market prices, seasonal trends, and regional factors,
+    provide a realistic price prediction.
+    
+    Respond in JSON format with exactly these keys:
+    - "predictedPrice": number (price in INR per kg, be realistic for Indian markets)
+    - "trend": "up", "down", or "stable" (compared to current average)
+    - "changePercent": number (percentage change, e.g. 5.2)
+    - "recommendation": string (1-2 sentence advice for the farmer)
+    - "factors": array of 3 strings (key factors influencing the price)
+    
+    Return ONLY valid JSON, no markdown formatting.
+    """
+
+    try:
+        response = gemini_model.generate_content(prompt)
+        clean_json = response.text.strip()
+        if clean_json.startswith('```json'):
+            clean_json = clean_json[7:-3].strip()
+        elif clean_json.startswith('```'):
+            clean_json = clean_json[3:-3].strip()
+        
+        import json
+        try:
+            result = json.loads(clean_json)
+            return jsonify(result)
+        except:
+            return jsonify({
+                'predictedPrice': 50.0,
+                'trend': 'stable',
+                'changePercent': 0,
+                'recommendation': 'Unable to parse AI response. Please try again.',
+                'factors': ['Market conditions', 'Seasonal trends', 'Regional supply']
+            })
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': f'AI Prediction Error: {str(e)}'}), 500
+
+
 load_models()
 
+@APP.route('/api/feedback', methods=['POST'])
+def submit_feedback():
+    try:
+        data = request.json
+        name = data.get('name', 'Anonymous')
+        email = data.get('email', '')
+        rating = data.get('rating', '5')
+        message = data.get('message', '')
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        csv_file = 'feedback.csv'
+        file_exists = os.path.isfile(csv_file)
+
+        with open(csv_file, mode='a', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            if not file_exists:
+                writer.writerow(['Timestamp', 'Name', 'Email', 'Rating', 'Message'])
+            writer.writerow([timestamp, name, email, rating, message])
+
+        return jsonify({'status': 'success', 'message': 'Feedback received!'})
+    except Exception as e:
+        print(f"Feedback Error: {e}")
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
-    APP.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    APP.run(host='0.0.0.0', port=port, debug=True)

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Sparkles, X, Volume2, Square, Loader2 } from 'lucide-react'
+import { Sparkles, X, Volume2, Square, Loader2, Globe } from 'lucide-react'
 
 const LANGUAGES = [
   { value: 'English', label: 'English' },
@@ -87,29 +87,27 @@ export default function AiModal({ features, prediction, onClose }) {
         {/* Header */}
         <div className="modal-header">
           <div className="modal-title">
-            <div className="modal-title-icon"><Sparkles size={18} /></div>
+            <div className="modal-title-icon"><Sparkles size={16} /></div>
             <div>
-              <h3>Gemini AI Analysis</h3>
-              <div style={{ fontSize: '0.75rem', color: 'var(--txt-muted)', marginTop: 2 }}>
+              <h3>AI Analysis</h3>
+              <div style={{ fontSize: '0.73rem', color: 'var(--txt-muted)', marginTop: 1 }}>
                 Why <strong style={{ color: 'var(--clr-accent)', textTransform: 'capitalize' }}>{prediction}</strong> is recommended
               </div>
             </div>
           </div>
-          <button className="modal-close" onClick={onClose}><X size={20} /></button>
+          <button className="modal-close" onClick={onClose}><X size={18} /></button>
         </div>
 
         {/* Body */}
         <div className="modal-body">
           <div className="modal-controls">
             <div style={{ position: 'relative', minWidth: 160 }}>
-              <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--txt-muted)', pointerEvents: 'none' }}>
-                🌐
-              </span>
+              <span className="input-icon"><Globe size={14} /></span>
               <select
                 className="field"
                 value={language}
                 onChange={handleLangChange}
-                style={{ paddingLeft: 32, height: 38 }}
+                style={{ height: 36 }}
               >
                 {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
               </select>
@@ -123,13 +121,13 @@ export default function AiModal({ features, prediction, onClose }) {
                   disabled={ttsLoading || !content || aiLoading}
                 >
                   {ttsLoading
-                    ? <><Loader2 size={14} className="spin" /> Loading…</>
-                    : <><Volume2 size={14} /> Listen</>
+                    ? <><Loader2 size={13} className="spin" /> Loading…</>
+                    : <><Volume2 size={13} /> Listen</>
                   }
                 </button>
               ) : (
                 <button className="btn btn-danger" onClick={stopAudio}>
-                  <Square size={12} /> Stop
+                  <Square size={11} /> Stop
                 </button>
               )}
             </div>
@@ -137,7 +135,7 @@ export default function AiModal({ features, prediction, onClose }) {
 
           <div className="ai-content-box">
             {aiLoading
-              ? <span className="ai-loading">Analyzing with Gemini AI in {language}…</span>
+              ? <span className="ai-loading">Analyzing with AI in {language}…</span>
               : content || <span className="ai-loading">Loading…</span>
             }
           </div>

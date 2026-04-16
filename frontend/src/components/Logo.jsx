@@ -1,18 +1,17 @@
 import React from 'react'
 import { Sprout } from 'lucide-react'
 
-export default function Logo({ size = 24, showText = true, fontSize = '1.25rem' }) {
+export default function Logo({ size = 22, showText = true, fontSize = '1.2rem' }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer' }}>
       <div style={{ 
-        width: size * 1.5, 
-        height: size * 1.5, 
-        borderRadius: size * 0.4,
-        background: 'linear-gradient(135deg, var(--clr-primary), #22c55e)', 
+        width: size * 1.6, 
+        height: size * 1.6, 
+        borderRadius: size * 0.35,
+        background: 'var(--clr-primary)', 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
-        boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)',
         color: 'white'
       }}>
         <Sprout size={size} />
@@ -21,10 +20,10 @@ export default function Logo({ size = 24, showText = true, fontSize = '1.25rem' 
       {showText && (
         <span style={{ 
           fontSize, 
-          fontWeight: 800, 
+          fontWeight: 700, 
           letterSpacing: '-0.01em', 
           fontFamily: 'var(--font-head)',
-          color: 'var(--txt-main)'
+          color: 'var(--txt-primary)'
         }}>
           Kishan<span style={{ color: 'var(--clr-primary)' }}>bandhu</span>
         </span>

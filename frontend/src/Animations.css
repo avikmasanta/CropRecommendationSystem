@@ -1,0 +1,254 @@
+/* =========================================================
+   Premium 3D Animations & Micro-interactions
+   Pure CSS – no libraries needed
+   ========================================================= */
+
+/* ─── Scroll Reveal Animations ───────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ─── 3D Card Tilt Effect ────────────────────────────────── */
+.card-3d {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+.card-3d-inner {
+  transition: transform 0.4s cubic-bezier(0.03, 0.98, 0.52, 0.99),
+              box-shadow 0.4s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.card-3d:hover .card-3d-inner {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12), 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Floating Orbs (Background Particles) ───────────────── */
+.floating-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.15;
+  animation: orbFloat linear infinite;
+}
+.orb-1 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, #4a9956, transparent 70%);
+  top: 10%; left: -5%;
+  animation-duration: 25s;
+}
+.orb-2 {
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, #c77b30, transparent 70%);
+  top: 60%; right: -3%;
+  animation-duration: 30s;
+  animation-delay: -10s;
+}
+.orb-3 {
+  width: 250px; height: 250px;
+  background: radial-gradient(circle, #2d7a3a, transparent 70%);
+  bottom: 5%; left: 40%;
+  animation-duration: 35s;
+  animation-delay: -20s;
+}
+
+@keyframes orbFloat {
+  0%   { transform: translate(0, 0) scale(1); }
+  25%  { transform: translate(40px, -30px) scale(1.1); }
+  50%  { transform: translate(-20px, 20px) scale(0.95); }
+  75%  { transform: translate(30px, 40px) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+/* ─── Staggered Form Field Entrance ──────────────────────── */
+.stagger-in .form-group {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: staggerReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.stagger-in .form-group:nth-child(1) { animation-delay: 0.05s; }
+.stagger-in .form-group:nth-child(2) { animation-delay: 0.1s; }
+.stagger-in .form-group:nth-child(3) { animation-delay: 0.15s; }
+.stagger-in .form-group:nth-child(4) { animation-delay: 0.2s; }
+.stagger-in .form-group:nth-child(5) { animation-delay: 0.25s; }
+.stagger-in .form-group:nth-child(6) { animation-delay: 0.3s; }
+.stagger-in .form-group:nth-child(7) { animation-delay: 0.35s; }
+
+@keyframes staggerReveal {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Hero Banner Shimmer ────────────────────────────────── */
+.hero-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.03) 45%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 55%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 8s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Animated Gradient Border on Focus ──────────────────── */
+.field:focus {
+  border-image: linear-gradient(135deg, #2d7a3a, #4a9956, #c77b30) 1;
+  border-image-slice: 1;
+}
+
+/* ─── Pulse Glow on Primary Buttons ──────────────────────── */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #2d7a3a, #4a9956);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  filter: blur(8px);
+}
+.btn-primary:hover::before {
+  opacity: 0.4;
+}
+
+/* ─── Stat Item Hover Lift ───────────────────────────────── */
+.stat-item {
+  transition: transform 0.2s ease, background 0.2s ease;
+  border-radius: var(--r-sm);
+  padding: 12px 8px;
+}
+.stat-item:hover {
+  transform: translateX(4px);
+  background: var(--bg-hover);
+}
+
+/* ─── Card Header Icon Bounce ────────────────────────────── */
+.card-header-icon {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.card:hover .card-header-icon {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+/* ─── Nav Link Underline Slide ───────────────────────────── */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--clr-primary);
+  border-radius: 2px;
+  transition: width 0.3s ease, left 0.3s ease;
+}
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 60%;
+  left: 20%;
+}
+
+/* ─── Crop Item 3D Lift ──────────────────────────────────── */
+.crop-item {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.crop-item:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* ─── Alert System Slide-in ──────────────────────────────── */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(-30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.alert-card {
+  animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ─── Logo Heartbeat ─────────────────────────────────────── */
+.logo-icon {
+  transition: transform 0.3s ease;
+}
+.header-brand:hover .logo-icon {
+  animation: heartbeat 0.6s ease;
+}
+@keyframes heartbeat {
+  0%   { transform: scale(1); }
+  25%  { transform: scale(1.15); }
+  50%  { transform: scale(1); }
+  75%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* ─── Smooth Page Transition ─────────────────────────────── */
+.main {
+  animation: pageEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Modal 3D Enter ─────────────────────────────────────── */
+@keyframes modal3DEnter {
+  from {
+    opacity: 0;
+    transform: perspective(600px) rotateX(8deg) translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(600px) rotateX(0deg) translateY(0) scale(1);
+  }
+}
+.modal {
+  animation: modal3DEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ─── Icon Button Rotate on Hover ────────────────────────── */
+.icon-btn {
+  transition: all 0.2s ease;
+}
+.icon-btn:hover {
+  transform: rotate(15deg) scale(1.05);
+}
+.theme-btn:hover {
+  transform: rotate(180deg) scale(1.05);
+}

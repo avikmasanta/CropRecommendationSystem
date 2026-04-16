@@ -14,3 +14,4 @@ with open('available_models.txt', 'w') as f:
     except Exception as e:
         f.write(f"ERROR: {e}\n")
         print(f"Error: {e}")
+ 

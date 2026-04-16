@@ -1,5 +1,5 @@
 import { useState, useRef, useContext, useEffect } from 'react'
-import { Thermometer, Droplets, CloudRain, CloudSun, Loader2, Wand2, ArrowRight, MapPin, ChevronDown } from 'lucide-react'
+import { Thermometer, Droplets, CloudRain, CloudSun, Loader2, Wand2, Search, MapPin, ChevronDown, FlaskConical, Leaf, Gauge } from 'lucide-react'
 import { LangContext } from '../App'
 
 const SAMPLE = { N: 85, P: 58, K: 41, temperature: 21.77, humidity: 80.31, ph: 7.03, rainfall: 226.65 }
@@ -71,156 +71,150 @@ export default function SoilForm({ models, weather, onWeatherFetched, onSubmit, 
   }
 
   const FIELDS = [
-    { name: 'N', label: '🟤 ' + t.nitrogenLabel,   unit: 'mg/kg', placeholder: 'e.g. 85',  helpText: 'Nitrogen content in soil', ...RANGES.N },
-    { name: 'P', label: '🟠 ' + t.phosphorusLabel, unit: 'mg/kg', placeholder: 'e.g. 58',  helpText: 'Phosphorus content in soil', ...RANGES.P },
-    { name: 'K', label: '🟡 ' + t.potassiumLabel,  unit: 'mg/kg', placeholder: 'e.g. 41',  helpText: 'Potassium content in soil', ...RANGES.K },
-    { name: 'ph', label: '⚗️ ' + t.phLabel,         unit: '0–14',  placeholder: 'e.g. 7.0', helpText: '7 is neutral (ideal for most crops)', ...RANGES.ph },
+    { name: 'N', label: t.nitrogenLabel,   unit: 'mg/kg', placeholder: 'e.g. 85',  helpText: 'Nitrogen content in soil', ...RANGES.N },
+    { name: 'P', label: t.phosphorusLabel, unit: 'mg/kg', placeholder: 'e.g. 58',  helpText: 'Phosphorus content in soil', ...RANGES.P },
+    { name: 'K', label: t.potassiumLabel,  unit: 'mg/kg', placeholder: 'e.g. 41',  helpText: 'Potassium content in soil', ...RANGES.K },
+    { name: 'ph', label: t.phLabel,         unit: '0–14',  placeholder: 'e.g. 7.0', helpText: '7 is neutral (ideal for most crops)', ...RANGES.ph },
   ]
   const CLIMATE = [
-    { name: 'temperature', label: '🌡️ ' + t.tempLabel,     unit: '°C', placeholder: 'e.g. 25',  helpText: 'Average temperature in your area', icon: <Thermometer size={15} />, ...RANGES.temperature },
-    { name: 'humidity',    label: '💧 ' + t.humidityLabel,  unit: '%',  placeholder: 'e.g. 70',  helpText: 'Average humidity percentage',         icon: <Droplets size={15} />, ...RANGES.humidity },
-    { name: 'rainfall',    label: '🌧️ ' + t.rainfallLabel,  unit: 'mm', placeholder: 'e.g. 150', helpText: 'Annual rainfall in millimeters',       icon: <CloudRain size={15} />, ...RANGES.rainfall },
+    { name: 'temperature', label: t.tempLabel,     unit: '°C', placeholder: 'e.g. 25',  helpText: 'Average temperature in your area', icon: <Thermometer size={14} />, ...RANGES.temperature },
+    { name: 'humidity',    label: t.humidityLabel,  unit: '%',  placeholder: 'e.g. 70',  helpText: 'Average humidity percentage',         icon: <Droplets size={14} />, ...RANGES.humidity },
+    { name: 'rainfall',    label: t.rainfallLabel,  unit: 'mm', placeholder: 'e.g. 150', helpText: 'Annual rainfall in millimeters',       icon: <CloudRain size={14} />, ...RANGES.rainfall },
   ]
 
+  const isOutOfRange = (name, val) => val !== '' && (parseFloat(val) < RANGES[name]?.min || parseFloat(val) > RANGES[name]?.max)
+
   return (
-    <div className="card">
-      <div className="card-header">
-        <div className="card-header-icon" style={{ fontSize: '1.4rem' }}>🌿</div>
-        <div>
-          <div className="card-title">{t.soilCardTitle}</div>
-          <div className="card-subtitle">{t.soilCardSub}</div>
+    <form onSubmit={handleSubmit}>
+
+      {/* Step 1: Soil nutrients */}
+      <div style={{ marginBottom: '1.75rem' }}>
+        <div className="form-step-label">
+          <FlaskConical size={15} />
+          Soil Nutrients
+        </div>
+        <div className="form-grid">
+          {FIELDS.map(f => (
+            <div className="form-group" key={f.name}>
+              <label>
+                {f.label} <span className="unit">({f.unit})</span>
+              </label>
+              <div className="input-wrap">
+                <span className="input-icon"><Leaf size={14} /></span>
+                <input className="field" type="number" step="any" required placeholder={f.placeholder}
+                  min={f.min} max={f.max}
+                  value={values[f.name]} onChange={e => set(f.name, e.target.value)}
+                  inputMode="decimal"
+                />
+              </div>
+              <div style={{ fontSize: '0.78rem', color: isOutOfRange(f.name, values[f.name]) ? '#c53030' : 'var(--txt-muted)', marginTop: 4, paddingLeft: 2 }}>
+                {isOutOfRange(f.name, values[f.name])
+                  ? `Value must be between ${f.min} and ${f.max}`
+                  : f.helpText
+                }
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-      <div className="card-body">
-        <form onSubmit={handleSubmit}>
 
-          {/* Step 1: Soil nutrients */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <div className="form-step-label">
-              📋 Step 1 — Enter Soil Nutrients
-            </div>
-            <div className="form-grid">
-              {FIELDS.map(f => (
-                <div className="form-group" key={f.name}>
-                  <label>
-                    {f.label} <span className="unit">({f.unit})</span>
-                  </label>
-                  <div className="input-wrap">
-                    <span className="input-icon" style={{ fontSize: '1rem', left: 12, color: 'var(--clr-primary)' }}>•</span>
-                    <input className="field" type="number" step="any" required placeholder={f.placeholder}
-                      min={f.min} max={f.max}
-                      value={values[f.name]} onChange={e => set(f.name, e.target.value)}
-                      inputMode="decimal"
-                    />
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: (values[f.name] !== '' && (values[f.name] < f.min || values[f.name] > f.max)) ? 'var(--clr-error, #ff4d4d)' : 'var(--txt-muted)', marginTop: 4, paddingLeft: 2 }}>
-                    {(values[f.name] !== '' && (values[f.name] < f.min || values[f.name] > f.max)) 
-                      ? `⚠️ Value must be between ${f.min} and ${f.max}`
-                      : f.helpText
-                    }
-                  </div>
-                </div>
-              ))}
+      {/* Step 2: Weather / climate */}
+      <div style={{ marginBottom: '1.75rem' }}>
+        <div className="form-step-label">
+          <CloudSun size={15} />
+          Weather & Climate
+        </div>
+        {/* Location auto-fill */}
+        <div className="weather-fetch-panel" style={{ marginBottom: '1.25rem' }}>
+          <div className="form-group" style={{ flex: 1, margin: 0 }}>
+            <label style={{ color: 'var(--clr-primary)', fontWeight: 600 }}>
+              <MapPin size={12} style={{ display: 'inline', marginRight: 4, verticalAlign: 'text-bottom' }} />
+              Auto-fill from your city / village
+            </label>
+            <div className="input-wrap">
+              <span className="input-icon"><MapPin size={14} /></span>
+              <input className="field" type="text" ref={locRef}
+                placeholder="Type your city or village name..."
+                value={location}
+                onChange={e => setLocation(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), fetchWeather())} />
             </div>
           </div>
+          <button type="button"
+            className={`btn ${wxStatus === 'success' ? 'btn-secondary' : 'btn-primary'}`}
+            onClick={fetchWeather} disabled={wxLoading} style={{ flexShrink: 0, height: 44 }}>
+            {wxLoading
+              ? <><Loader2 size={15} className="spin" /> Getting...</>
+              : wxStatus === 'success' ? <><Search size={15} /> Done</>
+              : wxStatus === 'error' ? <>Not found</>
+              : <><CloudSun size={15} /> Get Weather</>
+            }
+          </button>
+        </div>
 
-          {/* Step 2: Weather / climate */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <div className="form-step-label">
-              🌦️ Step 2 — Weather & Climate
-            </div>
-            {/* Location auto-fill */}
-            <div className="weather-fetch-panel" style={{ marginBottom: '1.25rem' }}>
-              <div className="form-group" style={{ flex: 1, margin: 0 }}>
-                <label style={{ color: 'var(--clr-primary)', fontWeight: 700 }}>
-                  <MapPin size={13} style={{ display: 'inline', marginRight: 4 }} />
-                  Auto-fill from your city / village
-                </label>
-                <div className="input-wrap">
-                  <span className="input-icon"><MapPin size={15} /></span>
-                  <input className="field" type="text" ref={locRef}
-                    placeholder="Type your city or village name..."
-                    value={location}
-                    onChange={e => setLocation(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), fetchWeather())} />
-                </div>
-              </div>
-              <button type="button"
-                className={`btn ${wxStatus === 'success' ? 'btn-secondary' : 'btn-primary'}`}
-                onClick={fetchWeather} disabled={wxLoading} style={{ flexShrink: 0, height: 54 }}>
-                {wxLoading
-                  ? <><Loader2 size={16} className="spin" /> Getting...</>
-                  : wxStatus === 'success' ? <>✅ Got it!</>
-                  : wxStatus === 'error' ? <>❌ Not found</>
-                  : <><CloudSun size={16} /> Get Weather</>
-                }
-              </button>
-            </div>
-
-            <div className="form-grid">
-              {CLIMATE.map(f => (
-                <div className="form-group" key={f.name}>
-                  <label>
-                    {f.label} <span className="unit">({f.unit})</span>
-                  </label>
-                  <div className="input-wrap">
-                    <span className="input-icon">{f.icon}</span>
-                    <input className="field" type="number" step="any" required placeholder={f.placeholder}
-                      min={f.min} max={f.max}
-                      value={values[f.name]} onChange={e => set(f.name, e.target.value)}
-                      inputMode="decimal"
-                    />
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: (values[f.name] !== '' && (values[f.name] < f.min || values[f.name] > f.max)) ? 'var(--clr-error, #ff4d4d)' : 'var(--txt-muted)', marginTop: 4, paddingLeft: 2 }}>
-                    {(values[f.name] !== '' && (values[f.name] < f.min || values[f.name] > f.max)) 
-                      ? `⚠️ Value must be between ${f.min} and ${f.max}`
-                      : f.helpText || ''
-                    }
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Step 3: Model selection */}
-          <div style={{ marginBottom: '0.5rem' }}>
-            <div className="form-step-label">
-              🤖 Step 3 — Choose AI Model
-            </div>
-            <div className="form-group">
-              <label>{t.modelLabel}</label>
+        <div className="form-grid">
+          {CLIMATE.map(f => (
+            <div className="form-group" key={f.name}>
+              <label>
+                {f.label} <span className="unit">({f.unit})</span>
+              </label>
               <div className="input-wrap">
-                <span className="input-icon"><ChevronDown size={15} /></span>
-                <select className="field" value={values.model} onChange={e => set('model', e.target.value)}>
-                  {models.length > 0
-                    ? models.map(m => <option key={m} value={m}>{m}</option>)
-                    : <option value="">{t.noModels}</option>}
-                </select>
+                <span className="input-icon">{f.icon}</span>
+                <input className="field" type="number" step="any" required placeholder={f.placeholder}
+                  min={f.min} max={f.max}
+                  value={values[f.name]} onChange={e => set(f.name, e.target.value)}
+                  inputMode="decimal"
+                />
+              </div>
+              <div style={{ fontSize: '0.78rem', color: isOutOfRange(f.name, values[f.name]) ? '#c53030' : 'var(--txt-muted)', marginTop: 4, paddingLeft: 2 }}>
+                {isOutOfRange(f.name, values[f.name])
+                  ? `Value must be between ${f.min} and ${f.max}`
+                  : f.helpText || ''
+                }
               </div>
             </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="form-actions">
-            <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ fontSize: '1.05rem' }}>
-              {loading
-                ? <><Loader2 size={18} className="spin" /> Analyzing...</>
-                : <>🌱 Find Best Crop</>
-              }
-            </button>
-            <button type="button" className="btn btn-secondary btn-lg" onClick={fillSample}
-              title="Fill with sample values for demo"
-              style={{ flexShrink: 0, paddingInline: 20 }}>
-              <Wand2 size={18} /> Sample
-            </button>
-          </div>
-
-          <div style={{ textAlign: 'center', marginTop: 10, fontSize: '0.85rem', color: 'var(--txt-muted)' }}>
-            💡 Tip: Click <strong>Sample</strong> to auto-fill demo values
-          </div>
-
-        </form>
+          ))}
+        </div>
       </div>
-    </div>
+
+      {/* Step 3: Model selection */}
+      <div style={{ marginBottom: '0.5rem' }}>
+        <div className="form-step-label">
+          <Gauge size={15} />
+          Prediction Model
+        </div>
+        <div className="form-group">
+          <label>{t.modelLabel}</label>
+          <div className="input-wrap">
+            <span className="input-icon"><ChevronDown size={14} /></span>
+            <select className="field" value={values.model} onChange={e => set('model', e.target.value)}>
+              {models.length > 0
+                ? models.map(m => <option key={m} value={m}>{m}</option>)
+                : <option value="">{t.noModels}</option>}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="form-actions">
+        <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>
+          {loading
+            ? <><Loader2 size={16} className="spin" /> Analyzing...</>
+            : <><Search size={16} /> Analyze Soil</>
+          }
+        </button>
+        <button type="button" className="btn btn-secondary btn-lg" onClick={fillSample}
+          title="Fill with sample values for demo"
+          style={{ flexShrink: 0, paddingInline: 18 }}>
+          <Wand2 size={16} /> Sample
+        </button>
+      </div>
+
+      <div style={{ textAlign: 'center', marginTop: 10, fontSize: '0.8rem', color: 'var(--txt-muted)' }}>
+        Click <strong>Sample</strong> to auto-fill demo values
+      </div>
+
+    </form>
   )
 }

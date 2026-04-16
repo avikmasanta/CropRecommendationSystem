@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Wheat, BarChart2, Loader2, Sparkles, AlertCircle, Sprout, ArrowRight } from 'lucide-react'
+import { BarChart2, Loader2, Sparkles, AlertCircle, Sprout, ArrowRight, Award, Leaf } from 'lucide-react'
 import { LangContext } from '../App'
 
 const CROP_IMAGES = {
@@ -30,14 +30,6 @@ const CROP_IMAGES = {
 }
 const FALLBACK = '/crops/fallback.jpg'
 
-const CROP_EMOJIS = {
-  rice: '🌾', wheat: '🌾', maize: '🌽', cotton: '🪴', jute: '🪴',
-  apple: '🍎', mango: '🥭', banana: '🍌', grapes: '🍇', orange: '🍊',
-  papaya: '🍈', watermelon: '🍉', muskmelon: '🍈', pomegranate: '🍎',
-  coconut: '🥥', coffee: '☕', chickpea: '🫘', kidneybeans: '🫘',
-  lentil: '🫘', mungbean: '🫘', blackgram: '🫘', pigeonpeas: '🫘', mothbeans: '🫘',
-}
-
 function getBadge(prob, t) {
   if (prob > 60) return { cls: 'badge-high', label: t.badgeHigh }
   if (prob > 20) return { cls: 'badge-medium', label: t.badgeMedium }
@@ -57,7 +49,7 @@ export default function ResultsPanel({ predictions, loading, onAskAI }) {
   return (
     <div className="card">
       <div className="card-header">
-        <div className="card-header-icon">🌿</div>
+        <div className="card-header-icon"><BarChart2 size={16} /></div>
         <div>
           <div className="card-title">{t.resultsTitle}</div>
           <div className="card-subtitle">{t.resultsSub}</div>
@@ -66,31 +58,30 @@ export default function ResultsPanel({ predictions, loading, onAskAI }) {
       <div className="card-body">
         {loading && (
           <div className="empty-state">
-            <div className="empty-icon" style={{ background: 'var(--clr-primary-glow)', color: 'var(--clr-primary)', fontSize: '2rem' }}>
-              🔍
+            <div className="empty-icon" style={{ color: 'var(--clr-primary)' }}>
+              <Loader2 size={24} className="spin" />
             </div>
-            <p style={{ color: 'var(--clr-primary)', fontWeight: 700, fontSize: '1rem' }}>Analyzing your soil...</p>
-            <p style={{ fontSize: '0.9rem', color: 'var(--txt-muted)' }}>Please wait a moment</p>
+            <p style={{ color: 'var(--clr-primary)', fontWeight: 600 }}>Analyzing your soil...</p>
+            <p>Please wait a moment</p>
           </div>
         )}
         {!loading && !predictions && (
           <div className="empty-state">
-            <div className="empty-icon" style={{ fontSize: '2.5rem' }}>🌱</div>
-            <p style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--txt-primary)' }}>{t.emptyTitle}</p>
-            <p style={{ fontSize: '0.9rem', color: 'var(--txt-muted)' }}>{t.emptyDesc}</p>
+            <div className="empty-icon"><Leaf size={24} /></div>
+            <p style={{ fontWeight: 600, color: 'var(--txt-primary)' }}>{t.emptyTitle}</p>
+            <p>{t.emptyDesc}</p>
           </div>
         )}
         {!loading && predictions?.error && (
-          <div className="error-box"><AlertCircle size={18} /><span>{predictions.error}</span></div>
+          <div className="error-box"><AlertCircle size={16} /><span>{predictions.error}</span></div>
         )}
         {!loading && hasResults && (() => {
           const topItem = predictions.all_predictions[0]
           const topImg = CROP_IMAGES[topItem.crop.toLowerCase()] || FALLBACK
-          const topEmoji = CROP_EMOJIS[topItem.crop.toLowerCase()] || '🌾'
 
           return (
             <>
-              {/* Big top crop hero */}
+              {/* Top crop hero */}
               <div className="top-crop-hero">
                 <img
                   src={topImg}
@@ -99,18 +90,18 @@ export default function ResultsPanel({ predictions, loading, onAskAI }) {
                   onError={e => { e.target.src = FALLBACK }}
                 />
                 <div className="top-crop-info">
-                  <div className="top-crop-tag">🏆 {t.bestMatch ?? 'Best Match'}</div>
-                  <div className="top-crop-name">{topEmoji} {topItem.crop}</div>
-                  <div style={{ marginTop: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                      <span style={{ fontSize: '0.9rem', color: 'var(--txt-secondary)', fontWeight: 600 }}>
+                  <div className="top-crop-tag"><Award size={12} /> {t.bestMatch ?? 'Best Match'}</div>
+                  <div className="top-crop-name">{topItem.crop}</div>
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+                      <span style={{ fontSize: '0.82rem', color: 'var(--txt-secondary)', fontWeight: 500 }}>
                         {t.confidence ?? 'Confidence'}
                       </span>
-                      <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--clr-primary)' }}>
+                      <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--clr-primary)' }}>
                         {topItem.probability}%
                       </span>
                     </div>
-                    <div className="progress-track" style={{ height: 10 }}>
+                    <div className="progress-track" style={{ height: 6 }}>
                       <div
                         className={`progress-bar ${getProgClass(topItem.probability)}`}
                         style={{ width: `${topItem.probability}%` }}
@@ -121,9 +112,9 @@ export default function ResultsPanel({ predictions, loading, onAskAI }) {
                   <button 
                     className="btn btn-primary btn-full" 
                     onClick={() => navigate(`/guide/${topItem.crop.toLowerCase()}`)}
-                    style={{ marginTop: '1.5rem', background: 'white', color: 'var(--clr-primary)', fontWeight: 800, gap: 10 }}
+                    style={{ marginTop: '1rem', gap: 8 }}
                   >
-                    <Sprout size={18} /> {t.guideHowToGrow} {topItem.crop} <ArrowRight size={16} />
+                    <Sprout size={16} /> How to Grow {topItem.crop} <ArrowRight size={14} />
                   </button>
                 </div>
               </div>
@@ -131,7 +122,7 @@ export default function ResultsPanel({ predictions, loading, onAskAI }) {
               {/* Other suggestions */}
               {predictions.all_predictions.length > 1 && (
                 <div style={{ marginBottom: 4 }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--txt-muted)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
+                  <div className="section-label" style={{ marginTop: 4 }}>
                     Other Options
                   </div>
                   <div className="crop-list">
@@ -139,9 +130,8 @@ export default function ResultsPanel({ predictions, loading, onAskAI }) {
                       const badge = getBadge(item.probability, t)
                       const progCls = getProgClass(item.probability)
                       const imgUrl = CROP_IMAGES[item.crop.toLowerCase()] || FALLBACK
-                      const emoji = CROP_EMOJIS[item.crop.toLowerCase()] || '🌾'
                       return (
-                        <div key={item.crop} className="crop-item" style={{ animationDelay: `${idx * 80}ms` }}>
+                        <div key={item.crop} className="crop-item" style={{ animationDelay: `${idx * 60}ms` }}>
                           <div className="crop-item-inner">
                             <div className="crop-avatar">
                               <img
@@ -153,7 +143,7 @@ export default function ResultsPanel({ predictions, loading, onAskAI }) {
                             </div>
                             <div className="crop-info">
                               <div className="crop-name">
-                                {emoji} {item.crop}
+                                {item.crop}
                               </div>
                               <div className="progress-wrap">
                                 <div className="progress-track">
@@ -165,15 +155,15 @@ export default function ResultsPanel({ predictions, loading, onAskAI }) {
                                 </div>
                               </div>
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, alignItems: 'flex-end' }}>
                                <span className={`badge ${badge.cls}`}>{badge.label}</span>
                                <button 
                                  className="icon-btn" 
                                  title={t.guideHowToGrow}
                                  onClick={() => navigate(`/guide/${item.crop.toLowerCase()}`)}
-                                 style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--clr-primary-glow)', color: 'var(--clr-primary)' }}
+                                 style={{ width: 30, height: 30, borderRadius: 6 }}
                                >
-                                 <Sprout size={16} />
+                                 <Sprout size={14} />
                                </button>
                             </div>
                           </div>
@@ -186,7 +176,7 @@ export default function ResultsPanel({ predictions, loading, onAskAI }) {
 
               <div className="ai-cta">
                 <button className="btn-ai" onClick={onAskAI}>
-                  <Sparkles size={18} /> {t.askAiBtn}
+                  <Sparkles size={16} /> {t.askAiBtn}
                 </button>
               </div>
             </>

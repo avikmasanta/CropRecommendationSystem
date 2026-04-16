@@ -1,195 +1,204 @@
 import React, { useState, useEffect, createContext, useContext } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, Link, useLocation } from 'react-router-dom'
-import { Sun, Moon, Sprout, LogIn, LogOut, UserPlus, Globe, LayoutDashboard, Store, Landmark } from 'lucide-react'
-import SoilForm from './components/SoilForm'
-import WeatherPanel from './components/WeatherPanel'
-import ResultsPanel from './components/ResultsPanel'
-import AiModal from './components/AiModal'
-import Particles from './components/Particles'
-import AlertSystem from './components/AlertSystem'
-import LoginPage from './pages/LoginPage'
-import SignUpPage from './pages/SignUpPage'
+import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, useLocation } from 'react-router-dom'
+import {
+  Sun, Moon, LogOut, ChevronDown, Leaf, Sprout, CloudSun, Bug, TrendingUp,
+  Store, Landmark, Search, Menu, X, PanelLeftClose, PanelLeft,
+  User, Settings, MessageSquare, BarChart3, Bell, Github
+} from 'lucide-react'
+import DashboardPage from './pages/DashboardPage'
+import CropRecommendPage from './pages/CropRecommendPage'
+import WeatherPage from './pages/WeatherPage'
+import DiseaseDiagnosisPage from './pages/DiseaseDiagnosisPage'
+import PricePredictionPage from './pages/PricePredictionPage'
 import MarketPage from './pages/MarketPage'
 import SchemesPage from './pages/SchemesPage'
 import CropGuidePage from './pages/CropGuidePage'
-import Logo from './components/Logo'
+import FeedbackPage from './pages/FeedbackPage'
+import LoginPage from './pages/LoginPage'
+import SignUpPage from './pages/SignUpPage'
 import { translations, LANGUAGES } from './i18n'
+import './Animations.css'
 
-// ─── Language Context ───────────────────────────────────
 export const LangContext = createContext({ lang: 'en', t: translations.en, setLang: () => {} })
 export const useLang = () => useContext(LangContext)
 
-// ─── Language Dropdown ──────────────────────────────────
+/* ── Sidebar nav config ──────────────────── */
+const AI_TOOLS = [
+  { path: '/price-predict', label: 'Price Prediction', icon: TrendingUp },
+  { path: '/disease', label: 'Disease Diagnosis', icon: Bug },
+  { path: '/recommend', label: 'Crop Recommendation', icon: Sprout },
+  { path: '/weather', label: 'Weather & Advice', icon: CloudSun },
+]
+const PLATFORM = [
+  { path: '/market', label: 'Marketplace', icon: Store },
+  { path: '/schemes', label: 'Govt Schemes', icon: Landmark },
+  { path: '/feedback', label: 'Feedback', icon: MessageSquare },
+]
+
+/* ── Language Dropdown ──────────────────────── */
 function LangSwitcher({ lang, setLang }) {
   const [open, setOpen] = useState(false)
   const current = LANGUAGES.find(l => l.code === lang)
   return (
     <div style={{ position: 'relative' }}>
-      <button
-        className="icon-btn"
-        onClick={() => setOpen(o => !o)}
-        title="Change Language"
-        style={{ gap: 6, width: 'auto', paddingInline: 14, borderRadius: 24, fontSize: '0.9rem' }}
-      >
-        <Globe size={16} />
-        <span className="hidden-mobile">{current.native}</span>
-        <span>{current.flag}</span>
+      <button className="topbar-icon-btn" onClick={() => setOpen(o => !o)} title="Language">
+        <span style={{ fontSize: 15 }}>{current.flag}</span>
       </button>
       {open && (
-        <div style={{
-          position: 'absolute', right: 0, top: 'calc(100% + 10px)',
-          background: 'var(--bg-surface)', border: '2px solid var(--border)',
-          borderRadius: 'var(--r-md)', overflow: 'hidden', zIndex: 200,
-          boxShadow: 'var(--shadow-md)', minWidth: 200,
-          animation: 'fadeSlideUp 0.1s ease'
-        }}>
-          {LANGUAGES.map(l => (
-            <button
-              key={l.code}
-              onClick={() => { setLang(l.code); setOpen(false) }}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                padding: '12px 18px', background: lang === l.code ? 'var(--clr-primary-glow)' : 'transparent',
-                border: 'none', cursor: 'pointer', color: lang === l.code ? 'var(--clr-primary)' : 'var(--txt-secondary)',
-                fontSize: '0.95rem', textAlign: 'left',
-                fontWeight: lang === l.code ? 700 : 500
-              }}
-            >
-              <span style={{ fontSize: 20 }}>{l.flag}</span>
-              <span>{l.native}</span>
-            </button>
-          ))}
-        </div>
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 199 }} onClick={() => setOpen(false)} />
+          <div className="lang-dropdown">
+            {LANGUAGES.map(l => (
+              <button key={l.code} className={`lang-option ${lang === l.code ? 'active' : ''}`}
+                onClick={() => { setLang(l.code); setOpen(false) }}>
+                <span style={{ fontSize: 15 }}>{l.flag}</span>
+                <span>{l.native}</span>
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )
 }
 
-// ─── Dashboard Content ──────────────────────────────────
-function DashboardContent({ weather, setWeather, predictions, setPredictions, loading, setLoading, setAiOpen, setLastData, models, t, user, autoLocation }) {
-  const handlePredict = async (formValues) => {
-    setLoading(true); setPredictions(null); setLastData(formValues)
-    try {
-      const fd = new FormData()
-      Object.entries(formValues).forEach(([k, v]) => fd.append(k, v))
-      const res = await fetch('/predict', { method: 'POST', body: fd })
-      const json = await res.json()
-      if (json.error) throw new Error(json.error)
-      setPredictions(json)
-    } catch (e) { setPredictions({ error: e.message }) }
-    finally { setLoading(false) }
-  }
-
-  return (
-    <div className="main">
-      <div className="dashboard-header">
-        <h1 className="dashboard-title">Dashboard</h1>
-        <p className="dashboard-subtitle">Welcome back, {user?.name || 'Farmer'} 👋</p>
-      </div>
-
-      <AlertSystem weather={weather} />
-
-      <div className="dashboard-grid">
-        <div className="dash-main">
-          {/* Soil Analysis Card */}
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-             <div className="card-banner-img" style={{ margin: 0, borderRadius: 0, background: 'linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.1)), url("https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&q=80&w=1200") center/cover' }} />
-             <div style={{ padding: '1.5rem' }}>
-                <div className="card-header" style={{ marginBottom: '1.5rem', padding: 0 }}>
-                  <div className="card-header-icon" style={{ background: 'var(--clr-primary-glow)', color: 'var(--clr-primary)' }}>🌱</div>
-                  <div>
-                    <div className="card-title">Soil Analysis</div>
-                    <div className="card-subtitle">Enter your field parameters below</div>
-                  </div>
-                </div>
-                <SoilForm models={models} weather={weather} onWeatherFetched={setWeather} onSubmit={handlePredict} loading={loading} initialLocation={autoLocation} />
-             </div>
-          </div>
-        </div>
-
-        <div className="dash-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <WeatherPanel weather={weather} />
-          <ResultsPanel predictions={predictions} loading={loading} onAskAI={() => setAiOpen(true)} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Main App Shell ─────────────────────────────────────
+/* ── Main App Shell ──────────────────────────── */
 function AppShell({ theme, toggleTheme, lang, setLang, weather, setWeather, autoDetectWeather, autoLocation, setAutoLocation }) {
   const t = translations[lang]
   const navigate = useNavigate()
   const location = useLocation()
   let user = null
-  try {
-    user = JSON.parse(localStorage.getItem('farmcrop_user') || 'null')
-  } catch (e) { console.error("User parse failed", e) }
-  
-  const [predictions, setPredictions] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [lastData, setLastData] = useState(null)
-  const [aiOpen, setAiOpen] = useState(false)
+  try { user = JSON.parse(localStorage.getItem('farmcrop_user') || 'null') } catch (e) {}
+
   const [models, setModels] = useState([])
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     fetch('/models').then(r => r.json()).then(d => setModels(d.models || [])).catch(() => setModels([]))
-    // If logged in but no weather, try auto-detect
     if (user && !weather.temp) autoDetectWeather()
   }, [])
 
+  const handleLogout = () => { localStorage.removeItem('farmcrop_user'); navigate('/login') }
+
+  const isActive = (path) => path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
+
   return (
     <LangContext.Provider value={{ lang, t, setLang }}>
-      <Particles />
-      <div className="app-wrapper">
-        <header className="header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-            <div className="header-brand" onClick={() => navigate('/')}>
-            <Logo size={24} fontSize="1.3rem" />
-          </div>
-            <nav style={{ display: 'flex', gap: 8 }} className="hidden-mobile">
-              <Link to="/" className={`btn ${location.pathname === '/' ? 'btn-primary' : 'btn-secondary'}`} style={{ height: 40, paddingInline: 16, fontSize: '0.9rem', gap: 8 }}>
-                <LayoutDashboard size={16} /> Dashboard
-              </Link>
-              <Link to="/market" className={`btn ${location.pathname === '/market' ? 'btn-primary' : 'btn-secondary'}`} style={{ height: 40, paddingInline: 16, fontSize: '0.9rem', gap: 8 }}>
-                <Store size={16} /> Marketplace
-              </Link>
-              <Link to="/schemes" className={`btn ${location.pathname === '/schemes' ? 'btn-primary' : 'btn-secondary'}`} style={{ height: 40, paddingInline: 16, fontSize: '0.9rem', gap: 8 }}>
-                <Landmark size={16} /> Government Schemes
-              </Link>
-            </nav>
-          </div>
-          <div className="header-actions">
-            <LangSwitcher lang={lang} setLang={setLang} />
-            <button className="icon-btn theme-btn" onClick={toggleTheme}>
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-            {user
-              ? <button className="icon-btn" onClick={() => { localStorage.removeItem('farmcrop_user'); navigate('/login') }}><LogOut size={17} /></button>
-              : <button className="btn btn-primary" style={{ height: 44, paddingInline: 20 }} onClick={() => navigate('/login')}>{t.signIn}</button>
-            }
-          </div>
-        </header>
+      <div className={`app-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
 
-        <main>
-          <Routes>
-            <Route path="/" element={<DashboardContent {...{ weather, setWeather, predictions, setPredictions, loading, setLoading, setAiOpen, setLastData, models, t, user, autoLocation }} />} />
-            <Route path="/market" element={<MarketPage />} />
-            <Route path="/schemes" element={<SchemesPage />} />
-            <Route path="/guide/:crop" element={<CropGuidePage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
+        {/* ═══ SIDEBAR ═══ */}
+        <aside className="sidebar">
+          {/* Logo */}
+          <div className="sidebar-logo" onClick={() => navigate('/')}>
+            <div className="sidebar-logo-icon"><Leaf size={16} /></div>
+            <span className="sidebar-logo-text">{t.appName || 'Kishanbandhu'}</span>
+          </div>
+
+          {/* Dashboard */}
+          <nav className="sidebar-nav">
+            <Link to="/" className={`sidebar-item ${isActive('/') ? 'active' : ''}`}>
+              <BarChart3 size={17} /> <span>Dashboard</span>
+            </Link>
+
+            <div className="sidebar-group-label">AI Tools</div>
+            {AI_TOOLS.map(item => (
+              <Link key={item.path} to={item.path} className={`sidebar-item ${isActive(item.path) ? 'active' : ''}`}>
+                <item.icon size={17} /> <span>{item.label}</span>
+              </Link>
+            ))}
+
+            <div className="sidebar-group-label">Platform</div>
+            {PLATFORM.map(item => (
+              <Link key={item.path} to={item.path} className={`sidebar-item ${isActive(item.path) ? 'active' : ''}`}>
+                <item.icon size={17} /> <span>{item.label}</span>
+              </Link>
+            ))}
+
+            <div className="sidebar-group-label">Account</div>
+            <div className="sidebar-item" style={{ cursor: 'default', opacity: 0.5 }}>
+              <User size={17} /> <span>Profile</span>
+            </div>
+            <div className="sidebar-item" style={{ cursor: 'default', opacity: 0.5 }}>
+              <Settings size={17} /> <span>Settings</span>
+            </div>
+
+            <div className="sidebar-group-label">Resources</div>
+            <a 
+              href="https://github.com/avikmasanta/CropRecommendationSystem" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="sidebar-item"
+            >
+              <Github size={17} /> <span>GitHub Source</span>
+            </a>
+          </nav>
+
+          {/* Logout */}
+          {user && (
+            <div className="sidebar-bottom">
+              <button className="sidebar-item sidebar-logout" onClick={handleLogout}>
+                <LogOut size={17} /> <span>Logout</span>
+              </button>
+            </div>
+          )}
+        </aside>
+
+        {/* ═══ MAIN ═══ */}
+        <div className="main-panel">
+          {/* Top Bar */}
+          <header className="topbar">
+            <div className="topbar-left">
+              <button className="topbar-icon-btn" onClick={() => setSidebarCollapsed(s => !s)} title="Toggle sidebar">
+                {sidebarCollapsed ? <PanelLeft size={17} /> : <PanelLeftClose size={17} />}
+              </button>
+              <div className="topbar-search">
+                <Search size={14} className="topbar-search-icon" />
+                <input placeholder="Search dashboard features..." />
+              </div>
+            </div>
+            <div className="topbar-right">
+              <button className="topbar-icon-btn" onClick={toggleTheme} title="Toggle theme">
+                {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+              </button>
+              <LangSwitcher lang={lang} setLang={setLang} />
+              <button className="topbar-icon-btn"><Bell size={17} /></button>
+              {user ? (
+                <div className="topbar-user">
+                  <div className="topbar-avatar">{(user.name || 'F')[0].toUpperCase()}</div>
+                </div>
+              ) : (
+                <button className="btn btn-primary btn-sm" onClick={() => navigate('/login')}>
+                  {t.signIn}
+                </button>
+              )}
+            </div>
+          </header>
+
+          {/* Content Routes */}
+          <div className="content-scroll">
+            <Routes>
+              <Route path="/" element={<DashboardPage user={user} weather={weather} />} />
+              <Route path="/recommend" element={
+                <CropRecommendPage weather={weather} setWeather={setWeather} autoLocation={autoLocation} models={models} autoDetectWeather={autoDetectWeather} />
+              } />
+              <Route path="/weather" element={<WeatherPage weather={weather} setWeather={setWeather} />} />
+              <Route path="/disease" element={<DiseaseDiagnosisPage />} />
+              <Route path="/price-predict" element={<PricePredictionPage />} />
+              <Route path="/market" element={<MarketPage />} />
+              <Route path="/schemes" element={<SchemesPage />} />
+              <Route path="/feedback" element={<FeedbackPage />} />
+              <Route path="/guide/:crop" element={<CropGuidePage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </div>
+        </div>
       </div>
-      {aiOpen && (
-        <AiModal features={lastData} prediction={predictions?.top_prediction} onClose={() => setAiOpen(false)} />
-      )}
     </LangContext.Provider>
   )
 }
 
 export default function App() {
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light')
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark')
   const [lang, setLang] = useState(() => localStorage.getItem('ui_lang') || 'en')
   const [weather, setWeather] = useState({ temp: null, humidity: null, rain: null, wind: null, forecast: [] })
   const [autoLocation, setAutoLocation] = useState(localStorage.getItem('farmcrop_location') || '')
@@ -200,53 +209,29 @@ export default function App() {
       const { latitude, longitude } = pos.coords
       try {
         const geo = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,rain,wind_speed_10m&daily=temperature_2m_max,precipitation_sum&timezone=auto`).then(r => r.json())
-        const c = geo.current
-        const d = geo.daily || {}
-        
-        // Prepare forecast data for next 3 days
-        const forecast = (d.time || []).slice(0, 3).map((time, i) => ({
-          date: time,
-          maxTemp: d.temperature_2m_max[i],
-          rain: d.precipitation_sum[i]
-        }))
-
-        setWeather({ 
-          temp: c.temperature_2m, 
-          humidity: c.relative_humidity_2m, 
-          rain: c.rain, 
-          wind: c.wind_speed_10m,
-          forecast: forecast
-        })
-        
+        const c = geo.current; const d = geo.daily || {}
+        const forecast = (d.time || []).slice(0, 3).map((time, i) => ({ date: time, maxTemp: d.temperature_2m_max[i], rain: d.precipitation_sum[i] }))
+        setWeather({ temp: c.temperature_2m, humidity: c.relative_humidity_2m, rain: c.rain, wind: c.wind_speed_10m, forecast })
         const loc = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`).then(r => r.json())
-        const addr = loc.address || {}
-        const city = addr.city || addr.town || addr.village || addr.suburb || addr.state || ''
-        if (city) {
-          setAutoLocation(city)
-          localStorage.setItem('farmcrop_location', city)
-        }
+        const addr = loc.address || {}; const city = addr.city || addr.town || addr.village || addr.suburb || addr.state || ''
+        if (city) { setAutoLocation(city); localStorage.setItem('farmcrop_location', city) }
       } catch (e) { console.error("Auto-weather failed", e) }
     })
   }
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('theme', theme)
-  }, [theme])
-
-  useEffect(() => {
-    localStorage.setItem('ui_lang', lang)
-    document.documentElement.lang = lang
-  }, [lang])
-
-  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark')
+  useEffect(() => { document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('theme', theme) }, [theme])
+  useEffect(() => { localStorage.setItem('ui_lang', lang); document.documentElement.lang = lang }, [lang])
 
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage lang={lang} setLang={setLang} onLogin={autoDetectWeather} />} />
         <Route path="/signup" element={<SignUpPage lang={lang} setLang={setLang} onSignup={autoDetectWeather} />} />
-        <Route path="/*" element={<AppShell theme={theme} toggleTheme={toggleTheme} lang={lang} setLang={setLang} weather={weather} setWeather={setWeather} autoDetectWeather={autoDetectWeather} autoLocation={autoLocation} setAutoLocation={setAutoLocation} />} />
+        <Route path="/*" element={
+          <AppShell theme={theme} toggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+            lang={lang} setLang={setLang} weather={weather} setWeather={setWeather}
+            autoDetectWeather={autoDetectWeather} autoLocation={autoLocation} setAutoLocation={setAutoLocation} />
+        } />
       </Routes>
     </BrowserRouter>
   )
