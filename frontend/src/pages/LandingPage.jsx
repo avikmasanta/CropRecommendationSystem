@@ -62,6 +62,10 @@ export default function LandingPage() {
               Learn more
             </button>
           </div>
+          
+          <div style={{ marginTop: '40px', fontSize: '0.9rem', opacity: 0.7, color: '#fff' }}>
+            Developed by <strong>Avik Masanta</strong>
+          </div>
         </div>
       </div>
     </div>

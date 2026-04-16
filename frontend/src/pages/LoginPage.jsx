@@ -119,6 +119,10 @@ export default function LoginPage({ lang, setLang, onLogin }) {
           <div className="auth-switch">
             {t.loginNoAccount} <a onClick={() => navigate('/signup')}>{t.loginCreateFree}</a>
           </div>
+
+          <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.75rem', opacity: 0.5 }}>
+            Developed by <strong>Avik Masanta</strong> | 2025 - 2026
+          </div>
         </div>
       </div>
     </div>
