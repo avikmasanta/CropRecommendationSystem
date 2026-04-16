@@ -107,5 +107,9 @@ To test the application as it would be served by Flask:
 - `frontend_dist/`: Production build of the frontend (served by Flask).
 - `requirements.txt`: Python package dependencies.
 
+## Developer
+- **Developed by**: [Avik Masanta](https://github.com/avikmasanta)
+- **Development Period**: 2025 - 2026
+
 ## License
 MIT License

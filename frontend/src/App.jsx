@@ -133,14 +133,24 @@ function AppShell({ theme, toggleTheme, lang, setLang, weather, setWeather, auto
             </a>
           </nav>
 
-          {/* Logout */}
-          {user && (
-            <div className="sidebar-bottom">
+          {/* Logout & Credits */}
+          <div className="sidebar-bottom">
+            {user && (
               <button className="sidebar-item sidebar-logout" onClick={handleLogout}>
                 <LogOut size={17} /> <span>Logout</span>
               </button>
+            )}
+            <div className="sidebar-credits" style={{ 
+              padding: '12px 16px', 
+              fontSize: '0.7rem', 
+              opacity: 0.6,
+              borderTop: '1px solid var(--border-color)',
+              marginTop: '4px'
+            }}>
+              <div>Developed by <strong>Avik Masanta</strong></div>
+              <div>Period: 2025 - 2026</div>
             </div>
-          )}
+          </div>
         </aside>
 
         {/* ═══ MAIN ═══ */}
