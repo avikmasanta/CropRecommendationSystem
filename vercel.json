@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "frontend_dist" }
+    },
+    {
+      "src": "app.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(predict|explain|tts|models|api)(.*)",
+      "dest": "app.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1",
+      "check": true
+    },
+    {
+      "src": "/(.*)",
+      "status": 404,
+      "dest": "/index.html"
+    }
+  ]
+}

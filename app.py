@@ -14,6 +14,7 @@ from datetime import datetime
 load_dotenv()
 
 APP = Flask(__name__, static_folder='frontend_dist', static_url_path='')
+app = APP # For Vercel/Serverless discovery
 CORS(APP)
 MODELS = {}
 MODELS_DIR = os.path.join(os.path.dirname(__file__), 'models')
