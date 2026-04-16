@@ -28,7 +28,7 @@ else:
     genai.configure(api_key=GOOGLE_API_KEY)
 
 try:
-    gemini_model = genai.GenerativeModel('models/gemini-2.5-flash')
+    gemini_model = genai.GenerativeModel('models/gemini-1.5-flash')
 except Exception:
     gemini_model = None
 
